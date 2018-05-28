@@ -21,7 +21,10 @@ to it. Alternativley, when used with
 .Ar -c ,
 prints generated content to
 .Ar STDOUT
-and does not create and return a mkstemp(3) file.
+and does not create and return a mkstemp(3) file. mkstemp(3) files are created
+with mode
+.Ar 0400 .
+This can not be changed.
 .Pp
 This utility is especially useful if you need to dynamically create
 configuration files for programs.

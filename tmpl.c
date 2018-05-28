@@ -16,6 +16,8 @@
 #include "config.h"
 #include "cmdline.h"
 
+#define FILE_MODE 0600
+
 static char *template = NULL;
 static char *buf = NULL;
 
@@ -151,7 +153,7 @@ clean:
 		goto quit;
 	}
 
-	tfd = open(template, O_WRONLY | O_CREAT, 0600);
+	tfd = open(template, O_WRONLY | O_CREAT, FILE_MODE);
 	if (0 > tfd)
 		_perrorf(EXIT_FAILURE, "open %s", template);
 
@@ -163,6 +165,10 @@ clean:
 	r = close(tfd);
 	if (0 != r)
 		_perrorf(EXIT_FAILURE, "close");
+
+	r = chmod(template, 0400);
+	if (0 != r)
+		_perrorf(EXIT_FAILURE, "chmod");
 
 	if (args_info.run_given) {
 		pid = fork();
