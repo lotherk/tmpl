@@ -15,7 +15,8 @@ SYNOPSIS
 DESCRIPTION
      Generates mkstemp(3) file and writes output of PROGRAM to it.
      Alternativley, when used with -c, prints generated content to STDOUT and
-     does not create and return a mkstemp(3) file.
+     does not create and return a mkstemp(3) file. mkstemp(3) files are
+     created with mode 0400.  This can not be changed.
 
      This utility is especially useful if you need to dynamically create
      configuration files for programs.
@@ -47,7 +48,7 @@ DESCRIPTION
 
      or
 
-	   neomutt -F $(tmpl -d 5 -e ACCOUNT=k@hiddenbox.or
+	   neomutt -F $(tmpl -d 5 -e ACCOUNT=k@hiddenbox.org
 	   ~/.mutt/mutt-gen-config.sh)
 
      will give neomutt 5 seconds (via -d) to read the config from mkstemp(3)
