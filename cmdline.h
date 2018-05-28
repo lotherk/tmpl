@@ -40,8 +40,8 @@ struct gengetopt_args_info
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *detailed_help_help; /**< @brief Print help, including all details and hidden options, and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  int force_flag;	/**< @brief Force output generation even if PROGRAM failes on a template. Use with caution! (default=off).  */
-  const char *force_help; /**< @brief Force output generation even if PROGRAM failes on a template. Use with caution! help description.  */
+  int force_flag;	/**< @brief Force output generation even if PROGRAM fails on a template. Use with caution! (default=off).  */
+  const char *force_help; /**< @brief Force output generation even if PROGRAM fails on a template. Use with caution! help description.  */
   int cat_flag;	/**< @brief Print buffer to STDOUT (does not write mkstemp(3) file) (default=off).  */
   const char *cat_help; /**< @brief Print buffer to STDOUT (does not write mkstemp(3) file) help description.  */
   char * mkstemp_template_arg;	/**< @brief Set mkstemp(3) template. (default='/tmp/.tmpl-XXXXXX').  */

@@ -7,9 +7,9 @@ versiontext "This software is supplied WITHOUT ANY WARRANTY; without even the im
 
 text "\n"
 
-option "force" f "Force output generation even if PROGRAM failes on a template. Use with caution!"
+option "force" f "Force output generation even if PROGRAM fails on a template. Use with caution!"
 	flag off
-	details="If PROGRAM failes on a template, no data (from that template)
+	details="If PROGRAM fails on a template, no data (from that template)
 will be added to the global buffer, instead of aborting. This might lead to unwanted
 behaviour if you use tmpl for config file generation.
 "

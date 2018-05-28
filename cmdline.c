@@ -38,8 +38,8 @@ const char *gengetopt_args_info_detailed_help[] = {
   "      --detailed-help           Print help, including all details and hidden\n                                  options, and exit",
   "  -V, --version                 Print version and exit",
   "\n",
-  "  -f, --force                   Force output generation even if PROGRAM failes\n                                  on a template. Use with caution!\n                                  (default=off)",
-  "  If PROGRAM failes on a template, no data (from that template)\n  will be added to the global buffer, instead of aborting. This might lead to\n  unwanted\n  behaviour if you use tmpl for config file generation.\n",
+  "  -f, --force                   Force output generation even if PROGRAM fails\n                                  on a template. Use with caution!\n                                  (default=off)",
+  "  If PROGRAM fails on a template, no data (from that template)\n  will be added to the global buffer, instead of aborting. This might lead to\n  unwanted\n  behaviour if you use tmpl for config file generation.\n",
   "  -c, --cat                     Print buffer to STDOUT (does not write\n                                  mkstemp(3) file)  (default=off)",
   "  -T, --mkstemp-template=FORMAT Set mkstemp(3) template.\n                                  (default=`/tmp/.tmpl-XXXXXX')",
   "  See mkstemp(3) man page",
@@ -930,7 +930,7 @@ cmdline_parser_internal (
           cmdline_parser_free (&local_args_info);
           exit (EXIT_SUCCESS);
 
-        case 'f':	/* Force output generation even if PROGRAM failes on a template. Use with caution!.  */
+        case 'f':	/* Force output generation even if PROGRAM fails on a template. Use with caution!.  */
         
         
           if (update_arg((void *)&(args_info->force_flag), 0, &(args_info->force_given),

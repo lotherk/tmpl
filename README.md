@@ -73,7 +73,7 @@ OPTIONS
 	     Print version and exit
 
      -f, --force
-	     Force output generation even if PROGRAM failes on a template...
+	     Force output generation even if PROGRAM fails on a template...
 	     Use with caution!
 
      -c, --cat
