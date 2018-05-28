@@ -29,7 +29,7 @@ DESCRIPTION
 	   ~/.mutt/mutt-gen-config.sh
 
      This will pass ~/.mutt/mutt-gen-config.sh, which is a script that
-     generates a mutt configuration file, to /bin/sh. All the output mutt-gen-
+     generates a mutt configuration file, to /bin/sh. All output mutt-gen-
      config.sh generates will be written to a mkstemp(3) file which is then
      read by neomutt. Since neomutt is called by tmpl via -r, tmpl
      automatically deletes the generated mkstemp(3) file as soon as neomutt
