@@ -128,6 +128,11 @@ TEMPLATE
 
      STDERR is never written to tmpl its buffer.
 
+BUGS
+     The parser for -r is pretty bad so don't try to use any fancy shell
+     syntax with quotes or other special chars. It might lead to unexpected
+     behaviour. You should instead use a wrapper script.
+
 SEE ALSO
      mkstemp(3)
 

@@ -147,6 +147,10 @@ sure!
 STDERR is never written to
 .Nm
 its buffer.
+.Sh BUGS
+The parser for
+.Fl r
+is pretty bad so don't try to use any fancy shell syntax with quotes or other special chars. It might lead to unexpected behaviour. You should instead use a wrapper script.
 .Sh SEE ALSO
 mkstemp(3)
 .Sh AUTHORS
