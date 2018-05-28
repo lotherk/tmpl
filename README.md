@@ -45,7 +45,7 @@ DESCRIPTION
 	   CFG=$(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
 	   neomutt -F $CFG; rm -f $CFG
 
-     Or
+     or
 
 	   neomutt -F $(tmpl -d 5 -e ACCOUNT=k@hiddenbox.or
 	   ~/.mutt/mutt-gen-config.sh)
