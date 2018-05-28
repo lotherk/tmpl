@@ -22,7 +22,7 @@ static char *buf = NULL;
 static void _perrorf(int quit, const char *format, ...);
 static void _setenv(char **env, size_t given);
 static int _quit(int code);
-static int run_command(char *command);
+static void run_command(char *command);
 
 int main(int argc, char **argv)
 {
@@ -167,8 +167,7 @@ clean:
 		pid = fork();
 
 		if (pid == 0) { // child
-			r = run_command(args_info.run_arg);
-			_quit(r);
+			 run_command(args_info.run_arg);
 		} else if (pid <0) { // fork failed
 			_perrorf(EXIT_FAILURE, "failed to fork");
 		} else { // parent
@@ -248,7 +247,7 @@ static void _setenv(char **env, size_t given)
 	}
 }
 
-static int run_command(char *command)
+static void run_command(char *command)
 {
 	char *ptr, *args, *program;
 	char *delim = " ";
@@ -301,5 +300,5 @@ static int run_command(char *command)
 	arguments[arguments_i] = NULL;
 
 	i = execvp(program, arguments);
-	return 0;
+	// execvp failed
 }
