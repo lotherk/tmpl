@@ -51,7 +51,7 @@ can not remove the mkstemp(3) file since it never knows when neomutt exits. A be
 .Dl CFG=$(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
 .Dl neomutt -F $CFG; rm -f $CFG
 .Pp
-Or
+or
 .Pp
 .Dl neomutt -F $(tmpl -d 5 -e ACCOUNT=k@hiddenbox.or ~/.mutt/mutt-gen-config.sh)
 .Pp
