@@ -9,8 +9,8 @@ NAME
      tmpl – Generates mkstemp(3) file and writes output of PROGRAM to it
 
 SYNOPSIS
-     tmpl [-hV] [-fc] [-T FORMAT] [-e KEY=VALUE] [-p PROGRAM] [-r COMMAND]
-	  template...
+     tmpl [-hV] [-fc] [-T FORMAT] [-e KEY=VALUE] [-d SECONDS] [-p PROGRAM]
+	  [-r COMMAND] template...
 
 DESCRIPTION
      Generates mkstemp(3) file and writes output of PROGRAM to it.
@@ -45,7 +45,13 @@ DESCRIPTION
 	   CFG=$(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
 	   neomutt -F $CFG; rm -f $CFG
 
-     You get the point.
+     Or
+
+	   neomutt -F $(tmpl -d 5 -e ACCOUNT=k@hiddenbox.or
+	   ~/.mutt/mutt-gen-config.sh)
+
+     will give neomutt 5 seconds (via -d) to read the config from mkstemp(3)
+     file, which gets then deleted.
 
      Try the following example in your terminal:
 
@@ -82,6 +88,10 @@ OPTIONS
 	     Set environment variable KEY to VALUE prior to running PROGRAM or
 	     COMMAND
 
+     -d, --delete SECONDS
+	     Spawns new process which deletes mkstemp(3) file after SECONDS
+	     seconds. Value is passed to sleep(3).
+
      -r, --run COMMAND
 	     Run COMMAND and deletes mkstemp(3) file afterwards
 
@@ -111,10 +121,10 @@ TEMPLATE
 
 	   tmpl -f -r 'httpd -f %f' server.sh vhosts.sh
 
-     will run httpd with the generated mkstemp file as its configuration file
-     even though one of the scripts might have failed. This could lead to an
-     unsafe httpd config or otherwise unwanted behaviour. The use of -f is not
-     encouraged unless you are really sure!
+     will run httpd with the generated mkstemp(3) file as its configuration
+     file even though one of the scripts might have failed. This could lead to
+     an unsafe httpd config or otherwise unwanted behaviour. The use of -f is
+     not encouraged unless you are really sure!
 
      STDERR is never written to tmpl its buffer.
 
