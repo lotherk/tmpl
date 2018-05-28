@@ -261,19 +261,12 @@ static void _setenv(char **env, size_t given)
 	int i, r;
 
 	for (i = 0; i < given; i++) {
-		char *saveptr;
 		char *key, *value;
 		const char *delim = "=";
-		const char *delim1 = "\0";
 
-		key = strtok_r(env[i], delim, &saveptr);
-		if (NULL == key)
+		key = strtok_r(env[i], delim, &value);
+		if (NULL == key || NULL == value)
 			continue;
-
-		value = strtok_r(NULL, delim1, &saveptr);
-		if (NULL == key)
-			continue;
-
 
 		r = setenv(key, value, 1);
 	}
