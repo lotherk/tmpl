@@ -259,10 +259,10 @@ static void _perrorf(int q, const char *format, ...)
 static void _setenv(char **env, size_t given)
 {
 	int i, r;
+	const char *delim = "=";
 
 	for (i = 0; i < given; i++) {
 		char *key, *value;
-		const char *delim = "=";
 
 		key = strtok_r(env[i], delim, &value);
 		if (NULL == key || NULL == value)
