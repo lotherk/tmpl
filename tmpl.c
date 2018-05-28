@@ -315,19 +315,5 @@ static void run_command(char *command)
 }
 
 static void delete_mkstemp(float seconds) {
-		pid_t pid;
-		int r;
-		pid = fork();
-
-		if (pid == 0) { // child
-			sleep(seconds);
-			r = unlink(template);
-			if (0 != r)
-				_perrorf(EXIT_FAILURE, "could not unlink %s", template);
-			_quit(0);
-		} else if (pid <0) { // fork failed
-			_perrorf(EXIT_FAILURE, "failed to fork");
-		} else { // parent
-			return;
-		}
+	_perrorf(EXIT_FAILURE, "--delete is not yet implemented!");
 }
