@@ -17,7 +17,7 @@ behaviour if you use tmpl for config file generation.
 option "cat" c "Print buffer to STDOUT (does not write mkstemp(3) file)"
 	flag off
 
-option "mkstemp-template" T "Set mkstemp template. It must contain XXXXXX!"
+option "mkstemp-template" T "Set mkstemp(3) template."
 	string typestr="FORMAT"
 	details="See mkstemp(3) man page"
 	default="/tmp/.tmpl-XXXXXX"

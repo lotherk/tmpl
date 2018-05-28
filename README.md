@@ -81,8 +81,7 @@ OPTIONS
 	     file
 
      -T, --mkstemp-template FORMAT
-	     Set mkstemp(3) template. It must contain XXXXXX!  (default:
-	     /tmp/.tmpl-XXXXXX)
+	     Set mkstemp(3) template. (default: /tmp/.tmpl-XXXXXX)
 
      -e, --environment KEY=VALUE
 	     Set environment variable KEY to VALUE prior to running PROGRAM or

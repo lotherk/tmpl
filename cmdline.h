@@ -44,9 +44,9 @@ struct gengetopt_args_info
   const char *force_help; /**< @brief Force output generation even if PROGRAM failes on a template. Use with caution! help description.  */
   int cat_flag;	/**< @brief Print buffer to STDOUT (does not write mkstemp(3) file) (default=off).  */
   const char *cat_help; /**< @brief Print buffer to STDOUT (does not write mkstemp(3) file) help description.  */
-  char * mkstemp_template_arg;	/**< @brief Set mkstemp template. It must contain XXXXXX! (default='/tmp/.tmpl-XXXXXX').  */
-  char * mkstemp_template_orig;	/**< @brief Set mkstemp template. It must contain XXXXXX! original value given at command line.  */
-  const char *mkstemp_template_help; /**< @brief Set mkstemp template. It must contain XXXXXX! help description.  */
+  char * mkstemp_template_arg;	/**< @brief Set mkstemp(3) template. (default='/tmp/.tmpl-XXXXXX').  */
+  char * mkstemp_template_orig;	/**< @brief Set mkstemp(3) template. original value given at command line.  */
+  const char *mkstemp_template_help; /**< @brief Set mkstemp(3) template. help description.  */
   char ** environment_arg;	/**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND.  */
   char ** environment_orig;	/**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND original value given at command line.  */
   unsigned int environment_min; /**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND's minimum occurreces */

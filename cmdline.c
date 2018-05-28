@@ -39,9 +39,9 @@ const char *gengetopt_args_info_detailed_help[] = {
   "  -V, --version                 Print version and exit",
   "\n",
   "  -f, --force                   Force output generation even if PROGRAM failes\n                                  on a template. Use with caution!\n                                  (default=off)",
-  "  If PROGRAM failes on a template, no data (from that template) \n  will be added to the global buffer, instead of aborting. This might lead to\n  unwanted\n  behaviour if you use tmpl for config file generation.\n",
+  "  If PROGRAM failes on a template, no data (from that template)\n  will be added to the global buffer, instead of aborting. This might lead to\n  unwanted\n  behaviour if you use tmpl for config file generation.\n",
   "  -c, --cat                     Print buffer to STDOUT (does not write\n                                  mkstemp(3) file)  (default=off)",
-  "  -T, --mkstemp-template=FORMAT Set mkstemp template. It must contain XXXXXX!\n                                  (default=`/tmp/.tmpl-XXXXXX')",
+  "  -T, --mkstemp-template=FORMAT Set mkstemp(3) template.\n                                  (default=`/tmp/.tmpl-XXXXXX')",
   "  See mkstemp(3) man page",
   "  -e, --environment=KEY=VALUE   Set environment variable ENV to VALUE prior to\n                                  running PROGRAM or COMMAND",
   "  -d, --delete=SECONDS          Spawns new process which deletes mkstemp(3)\n                                  file after N seconds.",
@@ -950,7 +950,7 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'T':	/* Set mkstemp template. It must contain XXXXXX!.  */
+        case 'T':	/* Set mkstemp(3) template..  */
         
         
           if (update_arg( (void *)&(args_info->mkstemp_template_arg), 
