@@ -79,6 +79,7 @@ int main(int argc, char **argv)
 	r = mkstemp(template);
 	if (-1 == r)
 		_perrorf(EXIT_FAILURE, "mkstemp %s", template);
+	tfd = r;
 
 	if (0 < args_info.environment_given) {
 		_setenv(args_info.environment_arg, args_info.environment_given);
@@ -177,10 +178,6 @@ clean:
 		fprintf(stdout, "%s", buf);
 		goto quit;
 	}
-
-	tfd = open(template, O_WRONLY | O_CREAT, FILE_MODE);
-	if (0 > tfd)
-		_perrorf(EXIT_FAILURE, "open %s", template);
 
 	r = write(tfd, buf, strlen(buf));
 
