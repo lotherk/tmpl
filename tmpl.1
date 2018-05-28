@@ -1,0 +1,143 @@
+.Dd $Mdocdate: May 28 2018$
+.Dt TMPL 1
+.Os
+.Sh NAME
+.Nm tmpl
+.Nd Generates mkstemp(3) file and writes output of PROGRAM to it
+.Sh SYNOPSIS
+.Nm tmpl
+.Op Fl hV
+.Op Fl fc
+.Op Fl T Ar FORMAT
+.Op Fl e Ar KEY=VALUE
+.Op Fl p Ar PROGRAM
+.Op Fl r Ar COMMAND
+.Ar template...
+.Sh DESCRIPTION
+Generates mkstemp(3) file and writes output of 
+.Ar PROGRAM
+to it. Alternativley when used with 
+.Ar -c 
+prints generated content to 
+.Ar STDOUT 
+and does not create and return a mkstemp(3) file.
+.Pp
+This utility is especially useful if you need to dynamically create
+configuration files for programs.
+.Pp
+A typical use case would be running (neo)mutt with multiple accounts using a single
+configuration file.
+.Pp
+.Dl tmpl -r 'neomutt -F %f' \e
+.Dl    -e ACCOUNT=k@hiddenbox.org \e
+.Dl    ~/.mutt/mutt-gen-config.sh
+.Pp
+This will pass ~/.mutt/mutt-gen-config.sh, which is a script that generates a mutt configuration file, to /bin/sh. All the output mutt-gen-config.sh generates will be written to a mkstemp(3) file which is then read by neomutt. Since neomutt is called by
+.Nm
+via
+.Fl r ,
+.Nm
+automatically deletes the generated mkstemp(3) file as soon as neomutt exits.
+.Pp
+The same example could also be written as:
+.Pp
+.Dl neomutt -F $(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
+.Pp
+but in this case
+.Nm
+can not remove the mkstemp(3) file since it never knows when neomutt exits. A better approach would be something like
+.Pp
+.Dl CFG=$(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
+.Dl neomutt -F $CFG; rm -f $CFG
+.Pp
+You get the point.
+.Pp
+Try the following example in your terminal:
+.Pp
+.Dl cat $(tmpl -p /bin/echo 'this is a test')
+.Pp
+or
+.Dl tmpl -r 'cat %f' -p /bin/echo 'this is still a test'
+.Pp
+This should give you a basic overview of what
+.Nm
+can do for you.
+.Sh OPTIONS
+.Bl -tag -width Ds
+.It Fl h, -help
+Print help and exit
+.It Fl -detailed-help
+Print help, including all details and hidden options, and exit
+.It Fl V, -version
+Print version and exit
+.It Fl f, -force
+Force output generation even if 
+.Ar PROGRAM
+failes on a 
+.Ar template...
+Use with caution!
+.It Fl c, -cat 
+Print output to
+.Ar STDOUT
+and do not create and return mkstemp(3) file
+.It Fl T, -mkstemp-template Ar FORMAT
+Set mkstemp(3) template. It must contain XXXXXX!
+(default: /tmp/.tmpl-XXXXXX)
+.It Fl e, -environment Ar KEY=VALUE
+Set environment variable KEY to VALUE prior to running 
+.Ar PROGRAM
+or
+.Ar COMMAND
+.It Fl r, -run Ar COMMAND
+Run 
+.Ar COMMAND
+and deletes mkstemp(3) file afterwards
+.It Fl p, -program Ar PROGRAM
+Pass
+.Ar template...
+to 
+.Ar PROGRAM
+(default: /bin/sh)
+.El
+.Sh TEMPLATE
+A
+.Va TEMPLATE
+is a shell script or any other input file or argument given to
+.Ar PROGRAM
+set with 
+.Fl p .
+.Pp
+The default program is
+.Va /bin/sh
+.Pp
+For example:
+.Pp
+.Dl tmpl -p /bin/sh /path/to/script1.sh /path/to/script2.sh
+.Pp
+will run script1.sh and script2.sh successively and result in 2 system calls:
+.Pp
+.Dl /bin/sh /path/to/script1.sh
+.Dl /bin/sh /path/to/script2.sh
+.Pp
+If either script fails to execute no output or mkstemp(3) file will be generated unless 
+.Fl f
+is used.
+.Pp
+For example:
+.Pp
+.Dl tmpl -f -r 'httpd -f %f' server.sh vhosts.sh
+.Pp
+will run httpd with the generated mkstemp file as its configuration file even though one of the scripts might have failed. This could lead to an unsafe httpd config or otherwise unwanted behaviour. The use of
+.Fl f
+is not encouraged unless you are 
+\fB\really\fR
+sure!
+
+STDERR is never written to 
+.Nm
+its buffer.
+.Sh SEE ALSO
+mkstemp(3)
+.Sh AUTHORS
+.Nm
+is developed by Konrad Lother <k@hiddenbox.org>.

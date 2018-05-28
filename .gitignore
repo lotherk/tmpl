@@ -1,0 +1,5 @@
+tmpl
+tmpl-static
+tmp/
+*.core
+**.sw*
