@@ -76,10 +76,9 @@ int main(int argc, char **argv)
 	if (NULL == template)
 		_perrorf(EXIT_FAILURE, "malloc template");
 
-	r = mkstemp(template);
-	if (-1 == r)
+	tfd = mkstemp(template);
+	if (-1 == tfd)
 		_perrorf(EXIT_FAILURE, "mkstemp %s", template);
-	tfd = r;
 
 	if (0 < args_info.environment_given) {
 		_setenv(args_info.environment_arg, args_info.environment_given);
