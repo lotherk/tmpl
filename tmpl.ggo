@@ -1,5 +1,5 @@
 package "tmpl"
-version "0.1 Copyright (C) 2018 Konrad Lother <konrad@hiddenbox.org>"
+version "0.1 Copyright (C) 2018 Konrad Lother <k@hiddenbox.org>"
 
 purpose "Generates mkstemp(3) file and writes output of PROGRAM to it."
 usage "tmpl [-hV] [-fc] [-T FORMAT] [-e KEY=VALUE] [-p PROGRAM] [-r COMMAND] template..."
