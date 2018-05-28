@@ -41,7 +41,7 @@ const char *gengetopt_args_info_detailed_help[] = {
   "  -f, --force                   Force output generation even if PROGRAM fails\n                                  on a template. Use with caution!\n                                  (default=off)",
   "  If PROGRAM fails on a template, no data (from that template)\n  will be added to the global buffer, instead of aborting. This might lead to\n  unwanted\n  behaviour if you use tmpl for config file generation.\n",
   "  -c, --cat                     Print buffer to STDOUT (does not write\n                                  mkstemp(3) file)  (default=off)",
-  "  -T, --mkstemp-template=FORMAT Set mkstemp(3) template.\n                                  (default=`/tmp/.tmpl-XXXXXX')",
+  "  -T, --mkstemp-template=FORMAT Set mkstemp(3) template.\n                                  (default=`/tmp/.tmpl-XXXXXXXXXX')",
   "  See mkstemp(3) man page",
   "  -e, --environment=KEY=VALUE   Set environment variable ENV to VALUE prior to\n                                  running PROGRAM or COMMAND",
   "  -d, --delete=SECONDS          Spawns new process which deletes mkstemp(3)\n                                  file after N seconds.",
@@ -116,7 +116,7 @@ void clear_args (struct gengetopt_args_info *args_info)
   FIX_UNUSED (args_info);
   args_info->force_flag = 0;
   args_info->cat_flag = 0;
-  args_info->mkstemp_template_arg = gengetopt_strdup ("/tmp/.tmpl-XXXXXX");
+  args_info->mkstemp_template_arg = gengetopt_strdup ("/tmp/.tmpl-XXXXXXXXXX");
   args_info->mkstemp_template_orig = NULL;
   args_info->environment_arg = NULL;
   args_info->environment_orig = NULL;
@@ -955,7 +955,7 @@ cmdline_parser_internal (
         
           if (update_arg( (void *)&(args_info->mkstemp_template_arg), 
                &(args_info->mkstemp_template_orig), &(args_info->mkstemp_template_given),
-              &(local_args_info.mkstemp_template_given), optarg, 0, "/tmp/.tmpl-XXXXXX", ARG_STRING,
+              &(local_args_info.mkstemp_template_given), optarg, 0, "/tmp/.tmpl-XXXXXXXXXX", ARG_STRING,
               check_ambiguity, override, 0, 0,
               "mkstemp-template", 'T',
               additional_error))

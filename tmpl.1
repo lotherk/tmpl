@@ -1,9 +1,11 @@
 .Dd $Mdocdate: May 28 2018$
-.Dt TMPL 1
 .Os
+.Dt TMPL 1
 .Sh NAME
 .Nm tmpl
-.Nd Generates mkstemp(3) file and writes output of PROGRAM to it
+.Nd Generates
+.Xr mkstemp 3
+file and writes output of PROGRAM to it
 .Sh SYNOPSIS
 .Nm tmpl
 .Op Fl hV
@@ -15,33 +17,53 @@
 .Op Fl r Ar COMMAND
 .Ar template...
 .Sh DESCRIPTION
-Generates mkstemp(3) file and writes output of
+Generates
+.Xr mkstemp 3
+file and writes output of
 .Ar PROGRAM
 to it. Alternativley, when used with
 .Ar -c ,
 prints generated content to
 .Ar STDOUT
-and does not create and return a mkstemp(3) file. mkstemp(3) files are created
-with mode
+and does not create and return a
+.Xr mkstemp 3
+file.
+.Xr mkstemp 3
+files are created with mode
 .Ar 0400 .
 This can not be changed.
 .Pp
 This utility is especially useful if you need to dynamically create
 configuration files for programs.
 .Pp
+.Nm
+does not have any templating language itself, instead it uses STDOUT from whatever you pass to
+.Fl p Ar PROGRAM .
+This allows you to use any templating language you want, if it has an interpreter or if you can wrap a script around it.
+.Pp
+To use, for example, erb you'd do something like this:
+.Pp
+.Bd -offset center
+tmpl -p
+.Dq /usr/local/bin/erb -T-
+/path/to/your.erb
+.Ed
+.Sh EXAMPLES
 A typical use case would be running (neo)mutt with multiple accounts using a single
 configuration file.
 .Pp
-.Dl tmpl -r 'neomutt -F %f' \e
-.Dl    -e ACCOUNT=k@hiddenbox.org \e
-.Dl    ~/.mutt/mutt-gen-config.sh
+.Dl tmpl -r 'neomutt -F %f' -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh
 .Pp
-This will pass ~/.mutt/mutt-gen-config.sh, which is a script that generates a mutt configuration file, to /bin/sh. All output mutt-gen-config.sh generates will be written to a mkstemp(3) file which is then read by neomutt. Since neomutt is called by
+This will pass ~/.mutt/mutt-gen-config.sh, which is a script that generates a mutt configuration file, to /bin/sh. All output mutt-gen-config.sh generates will be written to a
+.Xr mkstemp 3
+file which is then read by neomutt. Since neomutt is called by
 .Nm
 via
 .Fl r ,
 .Nm
-automatically deletes the generated mkstemp(3) file as soon as neomutt exits.
+automatically deletes the generated
+.Xr mkstemp 3
+file as soon as neomutt exits.
 .Pp
 The same example could also be written as:
 .Pp
@@ -49,10 +71,14 @@ The same example could also be written as:
 .Pp
 but in this case
 .Nm
-can not remove the mkstemp(3) file since it never knows when neomutt exits. A better approach would be something like
+can not remove the
+.Xr mkstemp 3
+file since it never knows when neomutt exits. A better approach would be something like
 .Pp
-.Dl CFG=$(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
-.Dl neomutt -F $CFG; rm -f $CFG
+.Bd -literal -offset center
+CFG=$(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
+neomutt -F $CFG; rm -f $CFG
+.Ed
 .Pp
 or
 .Pp
@@ -60,7 +86,9 @@ or
 .Pp
 will give neomutt 5 seconds (via
 .Fl d )
-to read the config from mkstemp(3) file, which gets then deleted.
+to read the config from
+.Xr mkstemp 3
+file, which gets then deleted.
 .Pp
 Try the following example in your terminal:
 .Pp
@@ -89,22 +117,29 @@ Use with caution!
 .It Fl c, -cat
 Print output to
 .Ar STDOUT
-and do not create and return mkstemp(3) file
+and do not create and return
+.Xr mkstemp 3
+file
 .It Fl T, -mkstemp-template Ar FORMAT
-Set mkstemp(3) template. (default: /tmp/.tmpl-XXXXXX)
+Set
+.Xr mkstemp 3
+template. (default: /tmp/.tmpl-XXXXXXXXXX)
 .It Fl e, -environment Ar KEY=VALUE
 Set environment variable KEY to VALUE prior to running
 .Ar PROGRAM
 or
 .Ar COMMAND
 .It Fl d, -delete Ar SECONDS
-Spawns new process which deletes mkstemp(3) file after
+Spawns new process which deletes
+.Xr mkstemp 3
+file after
 .Ar SECONDS
 seconds. Value is passed to sleep(3).
 .It Fl r, -run Ar COMMAND
 Run
 .Ar COMMAND
-and deletes mkstemp(3) file afterwards
+and deletes
+.Xr mkstemp 3 file afterwards
 .It Fl p, -program Ar PROGRAM
 Pass
 .Ar template...
@@ -132,7 +167,9 @@ will run script1.sh and script2.sh successively and result in 2 system calls:
 .Dl /bin/sh /path/to/script1.sh
 .Dl /bin/sh /path/to/script2.sh
 .Pp
-If either script fails to execute no output or mkstemp(3) file will be generated unless
+If either script fails to execute no output or
+.Xr mkstemp 3
+file will be generated unless
 .Fl f
 is used.
 .Pp
@@ -140,7 +177,9 @@ For example:
 .Pp
 .Dl tmpl -f -r 'httpd -f %f' server.sh vhosts.sh
 .Pp
-will run httpd with the generated mkstemp(3) file as its configuration file even though one of the scripts might have failed. This could lead to an unsafe httpd config or otherwise unwanted behaviour. The use of
+will run httpd with the generated
+.Xr mkstemp 3
+file as its configuration file even though one of the scripts might have failed. This could lead to an unsafe httpd config or otherwise unwanted behaviour. The use of
 .Fl f
 is not encouraged unless you are
 \fB\really\fR
@@ -154,7 +193,7 @@ The parser for
 .Fl r
 is pretty bad so don't try to use any fancy shell syntax with quotes or other special chars. It might lead to unexpected behaviour. You should instead use a wrapper script.
 .Sh SEE ALSO
-mkstemp(3)
+.Xr mkstemp 3
 .Sh AUTHORS
 .Nm
 is developed by Konrad Lother <k@hiddenbox.org>.

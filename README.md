@@ -1,10 +1,10 @@
 # tmpl
 
+**tmpl** is a small utility tool which creates [mkstemp(3)](https://man.openbsd.org/mkstemp)
 
 
 ## Manpage
 ```
-
 NAME
      tmpl – Generates mkstemp(3) file and writes output of PROGRAM to it
 
@@ -15,17 +15,26 @@ SYNOPSIS
 DESCRIPTION
      Generates mkstemp(3) file and writes output of PROGRAM to it.
      Alternativley, when used with -c, prints generated content to STDOUT and
-     does not create and return a mkstemp(3) file. mkstemp(3) files are
+     does not create and return a mkstemp(3) file.  mkstemp(3) files are
      created with mode 0400.  This can not be changed.
 
      This utility is especially useful if you need to dynamically create
      configuration files for programs.
 
+     tmpl does not have any templating language itself, instead it uses STDOUT
+     from whatever you pass to -p PROGRAM.  This allows you to use any
+     templating language you want, if it has an interpreter or if you can wrap
+     a script around it.
+
+     To use, for example, erb you'd do something like this:
+
+	   tmpl -p “/usr/local/bin/erb -T-” /path/to/your.erb
+
+EXAMPLES
      A typical use case would be running (neo)mutt with multiple accounts
      using a single configuration file.
 
-	   tmpl -r 'neomutt -F %f' \
-	   -e ACCOUNT=k@hiddenbox.org \
+	   tmpl -r 'neomutt -F %f' -e ACCOUNT=k@hiddenbox.org
 	   ~/.mutt/mutt-gen-config.sh
 
      This will pass ~/.mutt/mutt-gen-config.sh, which is a script that
@@ -82,7 +91,7 @@ OPTIONS
 	     file
 
      -T, --mkstemp-template FORMAT
-	     Set mkstemp(3) template. (default: /tmp/.tmpl-XXXXXX)
+	     Set mkstemp(3) template. (default: /tmp/.tmpl-XXXXXXXXXX)
 
      -e, --environment KEY=VALUE
 	     Set environment variable KEY to VALUE prior to running PROGRAM or
