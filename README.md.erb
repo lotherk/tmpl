@@ -4,5 +4,5 @@
 
 ## Manpage
 ```
-<%= %x(man ./tmpl.1 |col -b) %>
+<%= %x(man ./tmpl.1 | tail -n +2 | col -b) %>
 ```

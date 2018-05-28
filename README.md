@@ -4,7 +4,6 @@
 
 ## Manpage
 ```
-TMPL(1) 		FreeBSD General Commands Manual 	       TMPL(1)
 
 NAME
      tmpl – Generates mkstemp(3) file and writes output of PROGRAM to it
