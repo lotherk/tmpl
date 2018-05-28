@@ -3,13 +3,13 @@ version "0.1 Copyright (C) 2018 Konrad Lother <konrad@hiddenbox.org>"
 
 purpose "Generates mkstemp(3) file and writes output of PROGRAM to it."
 usage "tmpl [-hV] [-fc] [-T FORMAT] [-e KEY=VALUE] [-p PROGRAM] [-r COMMAND] template..."
-versiontext "This software is supplied WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This is free software, and you are welcome to redistribute it under certain conditions; see the template COPYING for details."          
+versiontext "This software is supplied WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This is free software, and you are welcome to redistribute it under certain conditions; see the template COPYING for details."
 
 text "\n"
 
 option "force" f "Force output generation even if PROGRAM failes on a template. Use with caution!"
 	flag off
-	details="If PROGRAM failes on a template, no data (from that template) 
+	details="If PROGRAM failes on a template, no data (from that template)
 will be added to the global buffer, instead of aborting. This might lead to unwanted
 behaviour if you use tmpl for config file generation.
 "
@@ -34,7 +34,7 @@ option "delete" d "Spawns new process which deletes mkstemp(3) file after N seco
 option "program" p "Pass templateN to PROGRAM."
 	string typestr="PROGRAM" default="/bin/sh" optional
 	details="Example: tmpl -p /usr/local/bin/ruby ~/.mutt.tmpl.rb
-" 
+"
 
 option "run" r "Run COMMAND and delete template afterwards."
 	string typestr="COMMAND" optional

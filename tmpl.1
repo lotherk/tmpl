@@ -15,12 +15,12 @@
 .Op Fl r Ar COMMAND
 .Ar template...
 .Sh DESCRIPTION
-Generates mkstemp(3) file and writes output of 
+Generates mkstemp(3) file and writes output of
 .Ar PROGRAM
-to it. Alternativley, when used with 
+to it. Alternativley, when used with
 .Ar -c ,
-prints generated content to 
-.Ar STDOUT 
+prints generated content to
+.Ar STDOUT
 and does not create and return a mkstemp(3) file.
 .Pp
 This utility is especially useful if you need to dynamically create
@@ -55,7 +55,7 @@ Or
 .Pp
 .Dl neomutt -F $(tmpl -d 5 -e ACCOUNT=k@hiddenbox.or ~/.mutt/mutt-gen-config.sh)
 .Pp
-will give neomutt 5 seconds (via 
+will give neomutt 5 seconds (via
 .Fl d )
 to read the config from mkstemp(3) file, which gets then deleted.
 .Pp
@@ -78,12 +78,12 @@ Print help, including all details and hidden options, and exit
 .It Fl V, -version
 Print version and exit
 .It Fl f, -force
-Force output generation even if 
+Force output generation even if
 .Ar PROGRAM
-failes on a 
+failes on a
 .Ar template...
 Use with caution!
-.It Fl c, -cat 
+.It Fl c, -cat
 Print output to
 .Ar STDOUT
 and do not create and return mkstemp(3) file
@@ -91,7 +91,7 @@ and do not create and return mkstemp(3) file
 Set mkstemp(3) template. It must contain XXXXXX!
 (default: /tmp/.tmpl-XXXXXX)
 .It Fl e, -environment Ar KEY=VALUE
-Set environment variable KEY to VALUE prior to running 
+Set environment variable KEY to VALUE prior to running
 .Ar PROGRAM
 or
 .Ar COMMAND
@@ -100,13 +100,13 @@ Spawns new process which deletes mkstemp(3) file after
 .Ar SECONDS
 seconds. Value is passed to sleep(3).
 .It Fl r, -run Ar COMMAND
-Run 
+Run
 .Ar COMMAND
 and deletes mkstemp(3) file afterwards
 .It Fl p, -program Ar PROGRAM
 Pass
 .Ar template...
-to 
+to
 .Ar PROGRAM
 (default: /bin/sh)
 .El
@@ -115,7 +115,7 @@ A
 .Va TEMPLATE
 is a shell script or any other input file or argument given to
 .Ar PROGRAM
-set with 
+set with
 .Fl p .
 .Pp
 The default program is
@@ -130,7 +130,7 @@ will run script1.sh and script2.sh successively and result in 2 system calls:
 .Dl /bin/sh /path/to/script1.sh
 .Dl /bin/sh /path/to/script2.sh
 .Pp
-If either script fails to execute no output or mkstemp(3) file will be generated unless 
+If either script fails to execute no output or mkstemp(3) file will be generated unless
 .Fl f
 is used.
 .Pp
@@ -140,11 +140,11 @@ For example:
 .Pp
 will run httpd with the generated mkstemp(3) file as its configuration file even though one of the scripts might have failed. This could lead to an unsafe httpd config or otherwise unwanted behaviour. The use of
 .Fl f
-is not encouraged unless you are 
+is not encouraged unless you are
 \fB\really\fR
 sure!
 
-STDERR is never written to 
+STDERR is never written to
 .Nm
 its buffer.
 .Sh SEE ALSO
