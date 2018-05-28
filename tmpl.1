@@ -10,6 +10,7 @@
 .Op Fl fc
 .Op Fl T Ar FORMAT
 .Op Fl e Ar KEY=VALUE
+.Op Fl d Ar SECONDS
 .Op Fl p Ar PROGRAM
 .Op Fl r Ar COMMAND
 .Ar template...
@@ -50,7 +51,13 @@ can not remove the mkstemp(3) file since it never knows when neomutt exits. A be
 .Dl CFG=$(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
 .Dl neomutt -F $CFG; rm -f $CFG
 .Pp
-You get the point.
+Or
+.Pp
+.Dl neomutt -F $(tmpl -d 5 -e ACCOUNT=k@hiddenbox.or ~/.mutt/mutt-gen-config.sh)
+.Pp
+will give neomutt 5 seconds (via 
+.Fl d )
+to read the config from mkstemp(3) file, which gets then deleted.
 .Pp
 Try the following example in your terminal:
 .Pp
@@ -88,6 +95,10 @@ Set environment variable KEY to VALUE prior to running
 .Ar PROGRAM
 or
 .Ar COMMAND
+.It Fl d, -delete Ar SECONDS
+Spawns new process which deletes mkstemp(3) file after
+.Ar SECONDS
+seconds. Value is passed to sleep(3).
 .It Fl r, -run Ar COMMAND
 Run 
 .Ar COMMAND
@@ -127,7 +138,7 @@ For example:
 .Pp
 .Dl tmpl -f -r 'httpd -f %f' server.sh vhosts.sh
 .Pp
-will run httpd with the generated mkstemp file as its configuration file even though one of the scripts might have failed. This could lead to an unsafe httpd config or otherwise unwanted behaviour. The use of
+will run httpd with the generated mkstemp(3) file as its configuration file even though one of the scripts might have failed. This could lead to an unsafe httpd config or otherwise unwanted behaviour. The use of
 .Fl f
 is not encouraged unless you are 
 \fB\really\fR

@@ -52,6 +52,9 @@ struct gengetopt_args_info
   unsigned int environment_min; /**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND's minimum occurreces */
   unsigned int environment_max; /**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND's maximum occurreces */
   const char *environment_help; /**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND help description.  */
+  float delete_arg;	/**< @brief Spawns new process which deletes mkstemp(3) file after N seconds..  */
+  char * delete_orig;	/**< @brief Spawns new process which deletes mkstemp(3) file after N seconds. original value given at command line.  */
+  const char *delete_help; /**< @brief Spawns new process which deletes mkstemp(3) file after N seconds. help description.  */
   char * program_arg;	/**< @brief Pass templateN to PROGRAM. (default='/bin/sh').  */
   char * program_orig;	/**< @brief Pass templateN to PROGRAM. original value given at command line.  */
   const char *program_help; /**< @brief Pass templateN to PROGRAM. help description.  */
@@ -66,6 +69,7 @@ struct gengetopt_args_info
   unsigned int cat_given ;	/**< @brief Whether cat was given.  */
   unsigned int mkstemp_template_given ;	/**< @brief Whether mkstemp-template was given.  */
   unsigned int environment_given ;	/**< @brief Whether environment was given.  */
+  unsigned int delete_given ;	/**< @brief Whether delete was given.  */
   unsigned int program_given ;	/**< @brief Whether program was given.  */
   unsigned int run_given ;	/**< @brief Whether run was given.  */
 

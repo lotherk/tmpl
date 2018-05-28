@@ -23,6 +23,7 @@ static void _perrorf(int quit, const char *format, ...);
 static void _setenv(char **env, size_t given);
 static int _quit(int code);
 static void run_command(char *command);
+static void delete_mkstemp(float seconds);
 
 int main(int argc, char **argv)
 {
@@ -190,6 +191,10 @@ quit:
 
 
 	fflush(stdout);
+
+	if (args_info.delete_given)
+		delete_mkstemp(args_info.delete_arg);
+
 	return _quit(0);
 }
 
@@ -301,4 +306,22 @@ static void run_command(char *command)
 
 	i = execvp(program, arguments);
 	// execvp failed
+}
+
+static void delete_mkstemp(float seconds) {
+		pid_t pid;
+		int r;
+		pid = fork();
+
+		if (pid == 0) { // child
+			sleep(seconds);
+			r = unlink(template);
+			if (0 != r)
+				_perrorf(EXIT_FAILURE, "could not unlink %s", template);
+			_quit(0);
+		} else if (pid <0) { // fork failed
+			_perrorf(EXIT_FAILURE, "failed to fork");
+		} else { // parent
+			return;
+		}
 }

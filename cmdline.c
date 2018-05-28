@@ -44,6 +44,7 @@ const char *gengetopt_args_info_detailed_help[] = {
   "  -T, --mkstemp-template=FORMAT Set mkstemp template. It must contain XXXXXX!\n                                  (default=`/tmp/.tmpl-XXXXXX')",
   "  See mkstemp(3) man page",
   "  -e, --environment=KEY=VALUE   Set environment variable ENV to VALUE prior to\n                                  running PROGRAM or COMMAND",
+  "  -d, --delete=SECONDS          Spawns new process which deletes mkstemp(3)\n                                  file after N seconds.",
   "  -p, --program=PROGRAM         Pass templateN to PROGRAM.  (default=`/bin/sh')",
   "  Example: tmpl -p /usr/local/bin/ruby ~/.mutt.tmpl.rb\n",
   "  -r, --run=COMMAND             Run COMMAND and delete template afterwards.",
@@ -64,17 +65,19 @@ init_help_array(void)
   gengetopt_args_info_help[6] = gengetopt_args_info_detailed_help[7];
   gengetopt_args_info_help[7] = gengetopt_args_info_detailed_help[9];
   gengetopt_args_info_help[8] = gengetopt_args_info_detailed_help[10];
-  gengetopt_args_info_help[9] = gengetopt_args_info_detailed_help[12];
-  gengetopt_args_info_help[10] = gengetopt_args_info_detailed_help[14];
-  gengetopt_args_info_help[11] = 0; 
+  gengetopt_args_info_help[9] = gengetopt_args_info_detailed_help[11];
+  gengetopt_args_info_help[10] = gengetopt_args_info_detailed_help[13];
+  gengetopt_args_info_help[11] = gengetopt_args_info_detailed_help[15];
+  gengetopt_args_info_help[12] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[12];
+const char *gengetopt_args_info_help[13];
 
 typedef enum {ARG_NO
   , ARG_FLAG
   , ARG_STRING
+  , ARG_FLOAT
 } cmdline_parser_arg_type;
 
 static
@@ -102,6 +105,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->cat_given = 0 ;
   args_info->mkstemp_template_given = 0 ;
   args_info->environment_given = 0 ;
+  args_info->delete_given = 0 ;
   args_info->program_given = 0 ;
   args_info->run_given = 0 ;
 }
@@ -116,6 +120,7 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->mkstemp_template_orig = NULL;
   args_info->environment_arg = NULL;
   args_info->environment_orig = NULL;
+  args_info->delete_orig = NULL;
   args_info->program_arg = gengetopt_strdup ("/bin/sh");
   args_info->program_orig = NULL;
   args_info->run_arg = NULL;
@@ -137,8 +142,9 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->environment_help = gengetopt_args_info_detailed_help[9] ;
   args_info->environment_min = 0;
   args_info->environment_max = 0;
-  args_info->program_help = gengetopt_args_info_detailed_help[10] ;
-  args_info->run_help = gengetopt_args_info_detailed_help[12] ;
+  args_info->delete_help = gengetopt_args_info_detailed_help[10] ;
+  args_info->program_help = gengetopt_args_info_detailed_help[11] ;
+  args_info->run_help = gengetopt_args_info_detailed_help[13] ;
   
 }
 
@@ -231,6 +237,7 @@ free_string_field (char **s)
 
 /** @brief generic value variable */
 union generic_value {
+    float float_arg;
     char *string_arg;
     const char *default_string_arg;
 };
@@ -281,6 +288,7 @@ cmdline_parser_release (struct gengetopt_args_info *args_info)
   free_string_field (&(args_info->mkstemp_template_arg));
   free_string_field (&(args_info->mkstemp_template_orig));
   free_multiple_string_field (args_info->environment_given, &(args_info->environment_arg), &(args_info->environment_orig));
+  free_string_field (&(args_info->delete_orig));
   free_string_field (&(args_info->program_arg));
   free_string_field (&(args_info->program_orig));
   free_string_field (&(args_info->run_arg));
@@ -341,6 +349,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
   if (args_info->mkstemp_template_given)
     write_into_file(outfile, "mkstemp-template", args_info->mkstemp_template_orig, 0);
   write_multiple_into_file(outfile, args_info->environment_given, "environment", args_info->environment_orig, 0);
+  if (args_info->delete_given)
+    write_into_file(outfile, "delete", args_info->delete_orig, 0);
   if (args_info->program_given)
     write_into_file(outfile, "program", args_info->program_orig, 0);
   if (args_info->run_given)
@@ -674,6 +684,9 @@ int update_arg(void *field, char **orig_field,
   case ARG_FLAG:
     *((int *)field) = !*((int *)field);
     break;
+  case ARG_FLOAT:
+    if (val) *((float *)field) = (float)strtod (val, &stop_char);
+    break;
   case ARG_STRING:
     if (val) {
       string_field = (char **)field;
@@ -686,6 +699,17 @@ int update_arg(void *field, char **orig_field,
     break;
   };
 
+  /* check numeric conversion */
+  switch(arg_type) {
+  case ARG_FLOAT:
+    if (val && !(stop_char && *stop_char == '\0')) {
+      fprintf(stderr, "%s: invalid numeric value: %s\n", package_name, val);
+      return 1; /* failure */
+    }
+    break;
+  default:
+    ;
+  };
 
   /* store the original value */
   switch(arg_type) {
@@ -790,6 +814,8 @@ void update_multiple_arg(void *field, char ***orig_field,
     *orig_field = (char **) realloc (*orig_field, (field_given + prev_given) * sizeof (char *));
 
     switch(arg_type) {
+    case ARG_FLOAT:
+      *((float **)field) = (float *)realloc (*((float **)field), (field_given + prev_given) * sizeof (float)); break;
     case ARG_STRING:
       *((char ***)field) = (char **)realloc (*((char ***)field), (field_given + prev_given) * sizeof (char *)); break;
     default:
@@ -801,6 +827,8 @@ void update_multiple_arg(void *field, char ***orig_field,
         tmp = list;
         
         switch(arg_type) {
+        case ARG_FLOAT:
+          (*((float **)field))[i + field_given] = tmp->arg.float_arg; break;
         case ARG_STRING:
           (*((char ***)field))[i + field_given] = tmp->arg.string_arg; break;
         default:
@@ -813,6 +841,12 @@ void update_multiple_arg(void *field, char ***orig_field,
   } else { /* set the default value */
     if (default_value && ! field_given) {
       switch(arg_type) {
+      case ARG_FLOAT:
+        if (! *((float **)field)) {
+          *((float **)field) = (float *)malloc (sizeof (float));
+          (*((float **)field))[0] = default_value->float_arg;
+        }
+        break;
       case ARG_STRING:
         if (! *((char ***)field)) {
           *((char ***)field) = (char **)malloc (sizeof (char *));
@@ -874,12 +908,13 @@ cmdline_parser_internal (
         { "cat",	0, NULL, 'c' },
         { "mkstemp-template",	1, NULL, 'T' },
         { "environment",	1, NULL, 'e' },
+        { "delete",	1, NULL, 'd' },
         { "program",	1, NULL, 'p' },
         { "run",	1, NULL, 'r' },
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVfcT:e:p:r:", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVfcT:e:d:p:r:", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -932,6 +967,18 @@ cmdline_parser_internal (
           if (update_multiple_arg_temp(&environment_list, 
               &(local_args_info.environment_given), optarg, 0, 0, ARG_STRING,
               "environment", 'e',
+              additional_error))
+            goto failure;
+        
+          break;
+        case 'd':	/* Spawns new process which deletes mkstemp(3) file after N seconds..  */
+        
+        
+          if (update_arg( (void *)&(args_info->delete_arg), 
+               &(args_info->delete_orig), &(args_info->delete_given),
+              &(local_args_info.delete_given), optarg, 0, 0, ARG_FLOAT,
+              check_ambiguity, override, 0, 0,
+              "delete", 'd',
               additional_error))
             goto failure;
         

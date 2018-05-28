@@ -27,6 +27,10 @@ option "environment" e "Set environment variable ENV to VALUE prior to running P
 	string typestr="KEY=VALUE"
 	multiple optional
 
+option "delete" d "Spawns new process which deletes mkstemp(3) file after N seconds."
+	float typestr="SECONDS"
+	optional
+
 option "program" p "Pass templateN to PROGRAM."
 	string typestr="PROGRAM" default="/bin/sh" optional
 	details="Example: tmpl -p /usr/local/bin/ruby ~/.mutt.tmpl.rb
