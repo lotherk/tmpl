@@ -14,7 +14,7 @@ SYNOPSIS
 
 DESCRIPTION
      Generates mkstemp(3) file and writes output of PROGRAM to it.
-     Alternativley when used with -c prints generated content to STDOUT and
+     Alternativley, when used with -c, prints generated content to STDOUT and
      does not create and return a mkstemp(3) file.
 
      This utility is especially useful if you need to dynamically create
