@@ -30,48 +30,6 @@ DESCRIPTION
 
 	   tmpl -p “/usr/local/bin/erb -T-” /path/to/your.erb
 
-EXAMPLES
-     A typical use case would be running (neo)mutt with multiple accounts
-     using a single configuration file.
-
-	   tmpl -r 'neomutt -F %f' -e ACCOUNT=k@hiddenbox.org
-	   ~/.mutt/mutt-gen-config.sh
-
-     This will pass ~/.mutt/mutt-gen-config.sh, which is a script that
-     generates a mutt configuration file, to /bin/sh. All output mutt-gen-
-     config.sh generates will be written to a mkstemp(3) file which is then
-     read by neomutt. Since neomutt is called by tmpl via -r, tmpl
-     automatically deletes the generated mkstemp(3) file as soon as neomutt
-     exits.
-
-     The same example could also be written as:
-
-	   neomutt -F $(tmpl -e ACCOUNT=k@hiddenbox.org
-	   ~/.mutt/mutt-gen-config.sh)
-
-     but in this case tmpl can not remove the mkstemp(3) file since it never
-     knows when neomutt exits. A better approach would be something like
-
-	   CFG=$(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
-	   neomutt -F $CFG; rm -f $CFG
-
-     or
-
-	   neomutt -F $(tmpl -d 5 -e ACCOUNT=k@hiddenbox.org
-	   ~/.mutt/mutt-gen-config.sh)
-
-     will give neomutt 5 seconds (via -d) to read the config from mkstemp(3)
-     file, which gets then deleted.
-
-     Try the following example in your terminal:
-
-	   cat $(tmpl -p /bin/echo 'this is a test')
-
-     or
-	   tmpl -r 'cat %f' -p /bin/echo 'this is still a test'
-
-     This should give you a basic overview of what tmpl can do for you.
-
 OPTIONS
      -h, --help
 	     Print help and exit
@@ -136,6 +94,48 @@ TEMPLATE
      not encouraged unless you are really sure!
 
      STDERR is never written to tmpl its buffer.
+
+EXAMPLES
+     A typical use case would be running (neo)mutt with multiple accounts
+     using a single configuration file.
+
+	   tmpl -r 'neomutt -F %f' -e ACCOUNT=k@hiddenbox.org
+	   ~/.mutt/mutt-gen-config.sh
+
+     This will pass ~/.mutt/mutt-gen-config.sh, which is a script that
+     generates a mutt configuration file, to /bin/sh. All output mutt-gen-
+     config.sh generates will be written to a mkstemp(3) file which is then
+     read by neomutt. Since neomutt is called by tmpl via -r, tmpl
+     automatically deletes the generated mkstemp(3) file as soon as neomutt
+     exits.
+
+     The same example could also be written as:
+
+	   neomutt -F $(tmpl -e ACCOUNT=k@hiddenbox.org
+	   ~/.mutt/mutt-gen-config.sh)
+
+     but in this case tmpl can not remove the mkstemp(3) file since it never
+     knows when neomutt exits. A better approach would be something like
+
+	   CFG=$(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
+	   neomutt -F $CFG; rm -f $CFG
+
+     or
+
+	   neomutt -F $(tmpl -d 5 -e ACCOUNT=k@hiddenbox.org
+	   ~/.mutt/mutt-gen-config.sh)
+
+     will give neomutt 5 seconds (via -d) to read the config from mkstemp(3)
+     file, which gets then deleted.
+
+     Try the following example in your terminal:
+
+	   cat $(tmpl -p /bin/echo 'this is a test')
+
+     or
+	   tmpl -r 'cat %f' -p /bin/echo 'this is still a test'
+
+     This should give you a basic overview of what tmpl can do for you.
 
 BUGS
      The parser for -r is pretty bad so don't try to use any fancy shell
