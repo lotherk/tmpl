@@ -48,58 +48,6 @@ tmpl -p
 .Dq /usr/local/bin/erb -T-
 /path/to/your.erb
 .Ed
-.Sh EXAMPLES
-A typical use case would be running (neo)mutt with multiple accounts using a single
-configuration file.
-.Pp
-.Dl tmpl -r 'neomutt -F %f' -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh
-.Pp
-This will pass ~/.mutt/mutt-gen-config.sh, which is a script that generates a mutt configuration file, to /bin/sh. All output mutt-gen-config.sh generates will be written to a
-.Xr mkstemp 3
-file which is then read by neomutt. Since neomutt is called by
-.Nm
-via
-.Fl r ,
-.Nm
-automatically deletes the generated
-.Xr mkstemp 3
-file as soon as neomutt exits.
-.Pp
-The same example could also be written as:
-.Pp
-.Dl neomutt -F $(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
-.Pp
-but in this case
-.Nm
-can not remove the
-.Xr mkstemp 3
-file since it never knows when neomutt exits. A better approach would be something like
-.Pp
-.Bd -literal -offset center
-CFG=$(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
-neomutt -F $CFG; rm -f $CFG
-.Ed
-.Pp
-or
-.Pp
-.Dl neomutt -F $(tmpl -d 5 -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
-.Pp
-will give neomutt 5 seconds (via
-.Fl d )
-to read the config from
-.Xr mkstemp 3
-file, which gets then deleted.
-.Pp
-Try the following example in your terminal:
-.Pp
-.Dl cat $(tmpl -p /bin/echo 'this is a test')
-.Pp
-or
-.Dl tmpl -r 'cat %f' -p /bin/echo 'this is still a test'
-.Pp
-This should give you a basic overview of what
-.Nm
-can do for you.
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl h, -help
@@ -188,6 +136,58 @@ sure!
 STDERR is never written to
 .Nm
 its buffer.
+.Sh EXAMPLES
+A typical use case would be running (neo)mutt with multiple accounts using a single
+configuration file.
+.Pp
+.Dl tmpl -r 'neomutt -F %f' -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh
+.Pp
+This will pass ~/.mutt/mutt-gen-config.sh, which is a script that generates a mutt configuration file, to /bin/sh. All output mutt-gen-config.sh generates will be written to a
+.Xr mkstemp 3
+file which is then read by neomutt. Since neomutt is called by
+.Nm
+via
+.Fl r ,
+.Nm
+automatically deletes the generated
+.Xr mkstemp 3
+file as soon as neomutt exits.
+.Pp
+The same example could also be written as:
+.Pp
+.Dl neomutt -F $(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
+.Pp
+but in this case
+.Nm
+can not remove the
+.Xr mkstemp 3
+file since it never knows when neomutt exits. A better approach would be something like
+.Pp
+.Bd -literal -offset center
+CFG=$(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
+neomutt -F $CFG; rm -f $CFG
+.Ed
+.Pp
+or
+.Pp
+.Dl neomutt -F $(tmpl -d 5 -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
+.Pp
+will give neomutt 5 seconds (via
+.Fl d )
+to read the config from
+.Xr mkstemp 3
+file, which gets then deleted.
+.Pp
+Try the following example in your terminal:
+.Pp
+.Dl cat $(tmpl -p /bin/echo 'this is a test')
+.Pp
+or
+.Dl tmpl -r 'cat %f' -p /bin/echo 'this is still a test'
+.Pp
+This should give you a basic overview of what
+.Nm
+can do for you.
 .Sh BUGS
 The parser for
 .Fl r
