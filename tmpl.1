@@ -30,8 +30,17 @@ and does not create and return a
 file.
 .Xr mkstemp 3
 files are created with mode
-.Ar 0400 .
-This can not be changed.
+.Ar 0600
+by
+.Xr mkstemp 3
+and set to
+.Ar 0400
+via
+.Xr chmod 2
+after writing STDOUT. Use
+.Fl m, -mode
+.Ar MODE
+to change that.
 .Pp
 This utility is especially useful if you need to dynamically create
 configuration files for programs.
