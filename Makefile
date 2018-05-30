@@ -12,7 +12,6 @@ program:
 	cc -g -o tmpl tmpl.c log.c cmdline.c
 readme.md: all
 	./tmpl -c -p "erb -T-" ./README.md.erb > README.md
-	make clean
 static:
 	cc -g -o tmpl-static -static tmpl.c cmdline.c
 

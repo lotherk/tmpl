@@ -2,6 +2,10 @@
 
 **tmpl** is a small utility tool which creates [mkstemp(3)](https://man.openbsd.org/mkstemp)
 
+## Help
+```
+./tmpl --detailed-help
+```
 
 ## Manpage
 ```
