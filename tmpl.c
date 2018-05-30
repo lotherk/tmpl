@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/ioctl.h>
 #include <limits.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -371,7 +372,7 @@ static int run_command()
         int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
         FILE *cstdin, *cstdout, *cstderr;
         char stdin_buf[PATH_MAX], stdout_buf[PATH_MAX], stderr_buf[PATH_MAX];
-        pid_t pid, wpid;
+        pid_t pid, wpid, bpid;
         int status, r;
 
         FILE *redir_stdout = stdout;
@@ -397,6 +398,16 @@ static int run_command()
                 perror("fork");
                 exit(EXIT_FAILURE);
         } else {
+
+                if (args.background_flag) {
+                        bpid = fork();
+
+                        if (bpid > 0) {
+                                // main process, die!
+                                exit(EXIT_SUCCESS);
+                        }
+                }
+
                 if (args.stdout_given) {
                         redir_stdout = fopen(args.stdout_arg, "w");
                         if (redir_stdout == NULL) {
@@ -438,26 +449,29 @@ static int run_command()
                 int do_read = 1;
                 int od = 0;
                 int ed = 0;
-
-                while (do_read != 0) {
-                        if (fgets(stdout_buf, PATH_MAX, cstdout) != NULL) {
-                                fprintf(redir_stdout, "%s", stdout_buf);
-                                fflush(redir_stdout);
-                        } else {
-                                od = 1;
+                int i;
+                int c;
+                int s;
+                do {
+                        if (ioctl(stderr_pipe[0], FIONREAD, &s) == 0 && s > 0) {
+                                for ( i = 0; i < s; i ++) {
+                                        c = fgetc(cstderr);
+                                        fputc(c, redir_stderr);
+                                }
                         }
-                        if (fgets(stderr_buf, PATH_MAX, cstderr) != NULL) {
-                                fprintf(redir_stderr, "%s", stderr_buf);
-                                fflush(redir_stderr);
-                        } else {
-                                ed = 1;
+                        if (ioctl(stdout_pipe[0], FIONREAD, &s) == 0 && s > 0) {
+                                for ( i = 0; i < s; i ++) {
+                                        c = fgetc(cstdout);
+                                        fputc(c, redir_stdout);
+                                }
                         }
-
-                        if (ed && od) {
-                                do_read = 0;
+                        waitpid(pid, &status, WNOHANG);
+                        if (status != 0)
                                 break;
-                        }
-                }
+
+                        sleep(1);
+                } while (do_read != 0);
+
                 fclose(cstdin);
                 fclose(cstdout);
                 fclose(cstderr);
@@ -470,8 +484,6 @@ static int run_command()
 
                 if (args.stderr_given)
                         fclose(redir_stderr);
-
-                while ((wpid = wait(&status)) > 0);
 
                 if (WIFEXITED(status))
                         return WEXITSTATUS(status);
