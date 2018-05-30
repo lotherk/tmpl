@@ -13,7 +13,7 @@ program:
 readme.md: all
 	./tmpl -c -p "erb -T-" ./README.md.erb > README.md
 static:
-	cc -g -o tmpl-static -static tmpl.c cmdline.c
+	cc -g -o tmpl-static -static tmpl.c log.c cmdline.c
 
 clean:
 	-rm -f tmpl

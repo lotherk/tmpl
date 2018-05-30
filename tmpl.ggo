@@ -60,7 +60,7 @@ option "environment" e "Set environment variable ENV to VALUE prior to running P
         multiple optional
 
 option "delete" d "Spawns new process which deletes mkstemp(3) file after N seconds."
-        float typestr="SECONDS"
+        float typestr="N"
         optional
 
 option "program" p "Pass templateN to PROGRAM."

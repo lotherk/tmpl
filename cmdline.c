@@ -49,7 +49,7 @@ const char *gengetopt_args_info_detailed_help[] = {
   "  -T, --mkstemp-template=FORMAT Set mkstemp(3) template.\n                                  (default=`/tmp/.tmpl-XXXXXXXXXX')",
   "  See mkstemp(3) man page",
   "  -e, --environment=KEY=VALUE   Set environment variable ENV to VALUE prior to\n                                  running PROGRAM or COMMAND",
-  "  -d, --delete=SECONDS          Spawns new process which deletes mkstemp(3)\n                                  file after N seconds.",
+  "  -d, --delete=N                Spawns new process which deletes mkstemp(3)\n                                  file after N seconds.",
   "  -p, --program=PROGRAM         Pass templateN to PROGRAM.  (default=`/bin/sh')",
   "  Example: tmpl -p /usr/local/bin/ruby ~/.mutt.tmpl.rb\n",
   "  -r, --run=COMMAND             Run COMMAND and delete template afterwards.",
