@@ -200,6 +200,8 @@ static void tmpl_atexit()
 static int tmpl_quit(int code)
 {
         logger_destroy();
+        free(template_buffer);
+        free(mkstemp_template);
         return code;
 }
 
