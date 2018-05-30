@@ -60,7 +60,7 @@ General:
   See mkstemp(3) man page
   -e, --environment=KEY=VALUE   Set environment variable ENV to VALUE prior to
                                   running PROGRAM or COMMAND
-  -d, --delete=SECONDS          Spawns new process which deletes mkstemp(3)
+  -d, --delete=N                Spawns new process which deletes mkstemp(3)
                                   file after N seconds.
   -p, --program=PROGRAM         Pass templateN to PROGRAM.  (default=`/bin/sh')
   Example: tmpl -p /usr/local/bin/ruby ~/.mutt.tmpl.rb
@@ -75,6 +75,10 @@ General:
   Variables:
           %f  - The generated mkstemp(3) file path
 
+  -B, --background              Fork to background when used with -r
+                                  (default=off)
+      --stdout=FILE             Redirect STDOUT from -r to FILE
+      --stderr=FILE             Redirect STDERR from -r to FILE
 
 See tmpl(1) for more informations and examples.
 
