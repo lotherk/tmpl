@@ -137,6 +137,7 @@ int main(int argc, char **argv)
                         perror("fork for delete");
                         exit(EXIT_FAILURE);
                 }
+                daemon(0, 0);
 
                 sleep(args.delete_arg);
                 r = unlink(mkstemp_template);
