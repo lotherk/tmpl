@@ -4,10 +4,10 @@
 
 ## Help
 ```
-<%= %(./tmpl --detailed-help) %>
+<%= %x(./tmpl --detailed-help) %>
 ```
 
 ## Manpage
 ```
-<%= %x(mandoc ./tmpl.1 | tail -n +3 | col -b) %>
+<%= %x(mandoc ./tmpl.1 | col -b) %>
 ```

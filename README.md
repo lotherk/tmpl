@@ -4,11 +4,86 @@
 
 ## Help
 ```
-./tmpl --detailed-help
+tmpl 0.1 Copyright (C) 2018 Konrad Lother <k@hiddenbox.org>
+
+This software is supplied WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This is free
+software, and you are welcome to redistribute it under certain conditions; see
+the template COPYING for details.
+
+Generates mkstemp(3) file and writes output of PROGRAM to it.
+
+Usage: tmpl [OPTIONS]... [FILES]...
+
+  -h, --help                    Print help and exit
+      --detailed-help           Print help, including all details and hidden
+                                  options, and exit
+  -V, --version                 Print version and exit
+
+General:
+
+
+  -l, --log                     Enable logging  (default=off)
+  -L, --log-file=FILE           Write logs to FILE  (default=`/dev/stderr')
+  -v, --verbose=INT             Be more verbose. Can be specified multiple
+                                  times to a maximum of 7
+  
+  Occurances    Level
+  1             Fatal
+  2             Critical
+  3             Error
+  4             Warning
+  5             Info
+  6             Debug
+  7             All
+
+  Examples:
+
+  log all Critical and thus also Fatal messages
+  # tmpl -v 2 ...
+
+  log all messages
+  # tmpl -v 7 ...
+
+  -f, --force                   Force output generation even if PROGRAM fails
+                                  on a template. Use with caution!
+                                  (default=off)
+  If PROGRAM fails on a template, no data (from that template)
+  will be added to the global buffer, instead of aborting. This might lead to
+  unwanted
+  behaviour if you use tmpl for config file generation.
+
+  -c, --cat                     Print buffer to STDOUT (does not write
+                                  mkstemp(3) file)  (default=off)
+  -T, --mkstemp-template=FORMAT Set mkstemp(3) template.
+                                  (default=`/tmp/.tmpl-XXXXXXXXXX')
+  See mkstemp(3) man page
+  -e, --environment=KEY=VALUE   Set environment variable ENV to VALUE prior to
+                                  running PROGRAM or COMMAND
+  -d, --delete=SECONDS          Spawns new process which deletes mkstemp(3)
+                                  file after N seconds.
+  -p, --program=PROGRAM         Pass templateN to PROGRAM.  (default=`/bin/sh')
+  Example: tmpl -p /usr/local/bin/ruby ~/.mutt.tmpl.rb
+
+  -r, --run=COMMAND             Run COMMAND and delete template afterwards.
+  Instead of returning the path, tmpl runs COMMAND
+  and deletes the mkstemp(3) file after COMMAND returns.
+  It then exits with the return code of COMMAND.
+
+  Example: tmpl -r "neomutt -F %f" ~/.mutt.tmpl.sh
+
+  Variables:
+          %f  - The generated mkstemp(3) file path
+
+
+See tmpl(1) for more informations and examples.
+
 ```
 
 ## Manpage
 ```
+TMPL(1)			    General Commands Manual		       TMPL(1)
+
 NAME
      tmpl  Generates mkstemp(3) file and writes output of PROGRAM to it
 
