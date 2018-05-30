@@ -97,8 +97,12 @@ int main(int argc, char **argv)
         }
 
         if (args.run_given) {
-                if((r = run_command()) != 0) {
+                int code;
+                code = run_command();
+
+                if (code < 0) {
                         perror("run_command");
+                        exit(EXIT_FAILURE);
                 }
 
                 r = unlink(mkstemp_template);
@@ -106,7 +110,7 @@ int main(int argc, char **argv)
                 if (r != 0)
                         perror("unlink mkstemp_template");
 
-                return tmpl_quit(0);
+                return tmpl_quit(code);
         }
 
         fprintf(stdout, "%s\n", mkstemp_template);
@@ -375,5 +379,5 @@ static int run_command()
                         return WEXITSTATUS(status);
         }
 
-        return 0;
+        return -1; // this should never be reached
 }
