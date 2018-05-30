@@ -6,7 +6,7 @@
 ## Manpage
 ```
 NAME
-     tmpl – Generates mkstemp(3) file and writes output of PROGRAM to it
+     tmpl  Generates mkstemp(3) file and writes output of PROGRAM to it
 
 SYNOPSIS
      tmpl [-hV] [-fc] [-T FORMAT] [-e KEY=VALUE] [-d SECONDS] [-p PROGRAM]
@@ -16,7 +16,8 @@ DESCRIPTION
      Generates mkstemp(3) file and writes output of PROGRAM to it.
      Alternativley, when used with -c, prints generated content to STDOUT and
      does not create and return a mkstemp(3) file.  mkstemp(3) files are
-     created with mode 0400.  This can not be changed.
+     created with mode 0600 by mkstemp(3) and set to 0400 via chmod(2) after
+     writing STDOUT. Use -m, --mode MODE to change that.
 
      This utility is especially useful if you need to dynamically create
      configuration files for programs.
@@ -28,7 +29,7 @@ DESCRIPTION
 
      To use, for example, erb you'd do something like this:
 
-	   tmpl -p “/usr/local/bin/erb -T-” /path/to/your.erb
+	   tmpl -p /usr/local/bin/erb -T- /path/to/your.erb
 
 OPTIONS
      -h, --help
@@ -148,6 +149,6 @@ SEE ALSO
 AUTHORS
      tmpl is developed by Konrad Lother <k@hiddenbox.org>.
 
-FreeBSD 12.0-CURRENT		 May 28, 2018		  FreeBSD 12.0-CURRENT
+OpenBSD 6.3			 May 28, 2018			   OpenBSD 6.3
 
 ```
