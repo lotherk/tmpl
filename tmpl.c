@@ -127,6 +127,22 @@ int main(int argc, char **argv)
         }
 
         fprintf(stdout, "%s\n", mkstemp_template);
+
+        if (args.delete_given) {
+                pid = fork();
+
+                if (pid > 0) {
+                        exit(tmpl_quit(0));
+                } else if (pid < 0) {
+                        perror("fork for delete");
+                        exit(EXIT_FAILURE);
+                }
+
+                sleep(args.delete_arg);
+                r = unlink(mkstemp_template);
+                exit(tmpl_quit(r));
+        }
+
         return tmpl_quit(0);
 }
 
