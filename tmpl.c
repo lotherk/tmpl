@@ -31,268 +31,296 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <limits.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <stdarg.h>
 
 #include "cmdline.h"
+#include "log.h"
 
-#define FILE_MODE 0600
+static char *mkstemp_template, *template_buffer;
+static struct gengetopt_args_info args;
+static struct logger logger;
+static FILE *log_file;
 
-static char *template = NULL;
-static char *buf = NULL;
-
-static void _perrorf(int quit, const char *format, ...);
-static void _setenv(char **env, size_t given);
-static int _quit(int code);
-static void run_command(char *command);
-static void delete_mkstemp(float seconds);
+static int arg_init(int argc, char **argv);
+static void logger_setup();
+static void logger_destroy();
+static void print_log(const char *msg);
+static int tmpl_quit(int code);
+static void tmpl_setenv();
+static void tmpl_atexit();
+static int write_mkstemp();
+static int run_program(const char *arg);
+static int run_command();
 
 int main(int argc, char **argv)
 {
-	int i, r, tfd, code;
-	size_t size;
+        int r, i;
 
-	pid_t pid, wpid;
+        mkstemp_template = NULL;
+        log_file = NULL;
+        if ((r = arg_init(argc, argv)) != 0)
+                exit(EXIT_FAILURE);
 
-	struct gengetopt_args_info args_info;
-	size_t buf_i = 0;
+        tmpl_setenv();
 
-	char *run_path;
-	FILE *fp;
+        logger_setup();
 
-	r = cmdline_parser(argc, argv, &args_info);
+        r = asprintf(&template_buffer, "%c", '\0');
+        if (r == -1) {
+                perror("template_buffer");
+                exit(EXIT_FAILURE);
+        }
 
-	if (0 != r)
-		_perrorf(EXIT_FAILURE, "failed to parse command line arguments");
-	if (0 == args_info.inputs_num)
-		_perrorf(EXIT_FAILURE, "see --help");
+        if (args.inputs_num == 1)
+                run_program(args.inputs[0]);
+        else if(args.inputs_num > 1)
+                for (i = 0; i < args.inputs_num; i++)
+                        run_program(args.inputs[i]);
+        else
+                run_program(NULL);
 
-	template = strdup(args_info.mkstemp_template_arg);
-	if (NULL == template)
-		_perrorf(EXIT_FAILURE, "malloc template");
+        if (args.cat_flag) {
+                printf("%s", template_buffer);
+                return tmpl_quit(0);
+        }
 
-	tfd = mkstemp(template);
-	if (-1 == tfd)
-		_perrorf(EXIT_FAILURE, "mkstemp %s", template);
+        r = write_mkstemp();
+        if (r != 0) {
+                perror("write_mkstemp");
+                exit(EXIT_FAILURE);
+        }
 
-	if (0 < args_info.environment_given) {
-		_setenv(args_info.environment_arg, args_info.environment_given);
-	}
+        if (args.run_given) {
+                if((r = run_command()) != 0) {
+                        perror("run_command");
+                }
 
+                r = unlink(mkstemp_template);
 
-	for (i = 0; i < args_info.inputs_num; i++) {
-		char line[PATH_MAX];
-		char *lbuf = NULL;
-		size_t lbuf_i = 0;
-		size = (strlen(args_info.program_arg) + 1 + strlen(args_info.inputs[i]) + 1);
-		run_path = malloc(sizeof(char) * size);
-		snprintf(run_path, size, "%s %s", args_info.program_arg, args_info.inputs[i]);
+                if (r != 0)
+                        perror("unlink mkstemp_template");
 
-		fp = popen(run_path, "r");
+                return tmpl_quit(0);
+        }
 
-		if (NULL == fp) {
-			_perrorf(0, "popen %s", run_path);
-			goto clean;
-		}
+        fprintf(stdout, "%s\n", mkstemp_template);
+        return tmpl_quit(0);
+}
 
-		while (fgets(line, PATH_MAX, fp) != NULL) {
-			size = strlen(line);
+static int arg_init(int argc, char **argv)
+{
+        int r;
 
-			if (NULL == lbuf) {
-				lbuf = calloc(size, sizeof(char));
-				if (NULL == lbuf)
-					_perrorf(EXIT_FAILURE, "malloc lbuf");
-			} else {
-				lbuf = realloc(lbuf, sizeof(char) * (buf_i + size));
-				if (NULL == lbuf)
-					_perrorf(EXIT_FAILURE, "realloc lbuf");
-			}
-			buf_i += size;
-			strncat(lbuf, line, strlen(line));
-		}
-
-		r = pclose(fp);
-		if (-1 == r) {
-			_perrorf(0, "pclose %s", run_path);
-			goto clean;
-		}
-
-		r = WEXITSTATUS(r);
-
-		if (0 != r) {
-			if (0 != args_info.force_flag)
-				code = 0;
-			else
-				code = EXIT_FAILURE;
-
-			_perrorf(code, "%s terminated non-zero %d", run_path, r);
-
-			if (0 != args_info.force_flag)
-				goto clean;
-		}
-
-		if (lbuf == NULL)
-			goto clean;
-
-		size = strlen(lbuf);
-		if (NULL == buf) {
-			buf = calloc(strlen(lbuf) + 1, sizeof(char));
-			if (NULL == buf)
-				_perrorf(EXIT_FAILURE, "malloc buf");
-
-		} else {
-			buf = realloc(buf, sizeof(char) * (buf_i + strlen(lbuf) + 1));
-			if (NULL == buf)
-				_perrorf(EXIT_FAILURE, "realloc buf");
-		}
+        if((r = cmdline_parser(argc, argv, &args)) != 0)
+                exit(EXIT_FAILURE);
 
 
-		strncat(buf, lbuf, size);
-		buf_i += size;
-
-clean:
-		if (NULL != lbuf) {
-			free(lbuf);
-			lbuf = NULL;
-		}
-
-		if (NULL != run_path) {
-			free(run_path);
-			run_path = NULL;
-		}
-	}
-
-	if (NULL == buf)
-		goto quit;
-
-	if (0 == strlen(buf))
-		goto quit;
-
-	if (args_info.cat_flag) {
-		fprintf(stdout, "%s", buf);
-		goto quit;
-	}
-
-	r = write(tfd, buf, strlen(buf));
-
-	if (r != strlen(buf))
-		_perrorf(EXIT_FAILURE, "write (%d/%d)", r, strlen(buf));
-
-	r = close(tfd);
-	if (0 != r)
-		_perrorf(EXIT_FAILURE, "close");
-
-	r = chmod(template, 0400);
-	if (0 != r)
-		_perrorf(EXIT_FAILURE, "chmod");
-
-	if (args_info.run_given) {
-		pid = fork();
-
-		if (pid == 0) { // child
-			 run_command(args_info.run_arg);
-		} else if (pid <0) { // fork failed
-			_perrorf(EXIT_FAILURE, "failed to fork");
-		} else { // parent
-			int status = 0;
-			while ((wpid = wait(&status)) > 0);
-			r = unlink(template);
-			if (0 != r)
-				_perrorf(0, "could not unlink %s", template);
-
-			if (WIFEXITED(status))
-				_quit(WEXITSTATUS(status));
-		}
-	} else {
-		fprintf(stdout, "%s\n", template);
-	}
-quit:
-
-	if (NULL != buf)
-		free(buf);
-
-
-	fflush(stdout);
-
-	if (args_info.delete_given)
-		delete_mkstemp(args_info.delete_arg);
-
-	return _quit(0);
+        return 0;
 }
 
 
-static int _quit(int code)
+static void logger_destroy()
 {
-	if (NULL != template)
-		free(template);
+        int r;
+        fflush(log_file);
+        r = fclose(log_file);
+        r = log_free(&logger);
+}
+static void logger_setup()
+{
+        int r, i;
+        if ((r = log_init(&logger)) != 0) {
+                perror("log_init");
+                exit(EXIT_FAILURE);
+        }
 
-	exit(code);
+        logger.progname = "core";
+
+        if (args.verbose_arg > 0) {
+                int level = 1;
+                for (i = 1; i < args.verbose_arg; i++)
+                        level += level;
+                logger.level = level;
+        }
+
+        if (args.log_file_given) {
+                log_file = fopen(args.log_file_arg, "a");
+                if (log_file == NULL) {
+                        perror("open log file");
+                        exit(EXIT_FAILURE);
+                }
+        } else {
+                log_file = stderr;
+        }
+
+        if ((r = log_appender(&logger, print_log)) != 0) {
+                perror("log_appender");
+                exit(EXIT_FAILURE);
+        }
+
+        LOG_INFO(&logger, "log started");
 }
 
-
-static void _perrorf(int q, const char *format, ...)
-{
-	char buf[PATH_MAX];
-	va_list list;
-
-	va_start(list, format);
-	vsnprintf(buf, PATH_MAX, format, list);
-	va_end(list);
-	if (0 != errno) {
-		perror(buf);
-	} else {
-		fprintf(stderr, "%s\n", buf);
-		fflush(stderr);
-	}
-
-	if (0 != q) {
-		fflush(stdout);
-		_quit(q);
-	}
+static void print_log(const char *msg) {
+        int r;
+        r = fprintf(log_file, "%s\n", msg);
+        if (r < 0) {
+                perror("print_log");
+                exit(EXIT_FAILURE);
+        }
+        fflush(log_file);
 }
 
-static void _setenv(char **env, size_t given)
+static void tmpl_setenv()
 {
-	int i, r;
-	const char *delim = "=";
-
-	for (i = 0; i < given; i++) {
-		char *key, *value;
-
-		key = strtok_r(env[i], delim, &value);
-		if (NULL == key || NULL == value)
-			continue;
-
-		r = setenv(key, value, 1);
-	}
+        int i, r;
+        const char *delim = "=";
+        for (i = 0; i < args.environment_given; i++) {
+                char *key, *value;
+                key = strtok_r(args.environment_arg[i], delim, &value);
+                if (key == NULL || value == NULL)
+                        continue;
+                r = setenv(key, value, 1);
+        }
+}
+static void tmpl_atexit()
+{
+        tmpl_quit(1);
+}
+static int tmpl_quit(int code)
+{
+        logger_destroy();
+        return code;
 }
 
-static void run_command(char *command)
+static int run_program(const char *arg)
 {
-	char *ptr, *args, *program;
+        int r;
+        char *path, *buf, *tmp;
+        char line[PATH_MAX];
+
+        FILE *fp;
+
+        r = asprintf(&buf, "%c", '\0');
+        if (r == -1) {
+                perror("run_program buf");
+                exit(EXIT_FAILURE);
+        }
+
+        if (arg == NULL) {
+                path = args.program_arg;
+        } else {
+                r = asprintf(&path, "%s %s", args.program_arg, arg);
+                if (r == -1) {
+                        perror("run_program asprintf");
+                        exit(EXIT_FAILURE);
+                }
+        }
+
+        LOG_DEBUG(&logger, "Running cmd: '%s'", path);
+        fp = popen(path, "r");
+
+        if (fp == NULL) {
+                perror("popen");
+                exit(EXIT_FAILURE);
+        }
+
+        while (fgets(line, PATH_MAX, fp) != NULL) {
+                tmp = buf;
+                r = asprintf(&buf, "%s%s", buf, line);
+                if (r == -1) {
+                        perror("fgets asprintf");
+                        exit(EXIT_FAILURE);
+                }
+                free(tmp);
+        }
+
+        r = pclose(fp);
+        if (r == -1) {
+                perror("run_program pclose");
+                exit(EXIT_FAILURE);
+        }
+
+        r = WEXITSTATUS(r);
+
+        if (r != 0 && !args.force_flag) {
+                free(buf);
+                return r;
+        }
+
+        r = asprintf(&template_buffer, "%s%s", template_buffer, buf);
+        if (r == -1) {
+                perror("run_program template_buffer");
+                exit(EXIT_FAILURE);
+        }
+        free(buf);
+        return 0;
+}
+
+static int write_mkstemp()
+{
+        int fd, r;
+        size_t size;
+
+        mkstemp_template = strdup(args.mkstemp_template_arg);
+        if (mkstemp_template == NULL) {
+                perror("mkstemp_template");
+                exit(EXIT_FAILURE);
+        }
+
+        fd = mkstemp(mkstemp_template);
+        if (fd == -1) {
+                perror("mkstemp");
+                exit(EXIT_FAILURE);
+        }
+
+        size = strlen(template_buffer);
+        r = write(fd, template_buffer, size);
+        if (r != size) {
+                perror("write");
+                exit(EXIT_FAILURE);
+        }
+        r = fchmod(fd, 0400);
+        if (r == -1) {
+                perror("fchmod");
+                exit(EXIT_FAILURE);
+        }
+        r = close(fd);
+        if (r != 0) {
+                perror("close");
+                exit(EXIT_FAILURE);
+        }
+        return 0;
+}
+
+static void run_command_child()
+{
+	char *ptr, *arg, *program, *command;
 	char *delim = " ";
-	char *delim1 = "";
 	char *arguments[PATH_MAX];
 	size_t arguments_i = 0;
 	char abuf[PATH_MAX] = { '\0' };
 	size_t abuf_i;
 	int i;
 
-	args = NULL;
-	program = strtok_r(command, delim, &args);
+        command = args.run_arg;
+
+	arg = NULL;
+	program = strtok_r(command, delim, &arg);
 
 	if (NULL == program)
 		program = command;
 
 	arguments[arguments_i++] = program;
 
-	if (NULL != args)
-	for (ptr = args; *ptr != '\0'; ptr++) {
+	if (NULL != arg)
+	for (ptr = arg; *ptr != '\0'; ptr++) {
 
 		if (*ptr == '%') {
 			ptr++;
@@ -301,7 +329,7 @@ static void run_command(char *command)
 					break;
 
 				case 'f':
-					arguments[arguments_i++] = template;
+					arguments[arguments_i++] = mkstemp_template;
 					continue;
 				default:
 					break;
@@ -326,8 +354,26 @@ static void run_command(char *command)
 
 	i = execvp(program, arguments);
 	// execvp failed
+        return;
 }
+static int run_command()
+{
 
-static void delete_mkstemp(float seconds) {
-	_perrorf(EXIT_FAILURE, "--delete is not yet implemented!");
+        pid_t pid, wpid;
+        int status, r;
+
+        pid = fork();
+
+        if (pid == 0) {
+                run_command_child();
+        } else if (pid < 0) {
+                perror("fork");
+                exit(EXIT_FAILURE);
+        } else {
+                while ((wpid = wait(&status)) > 0);
+                if (WIFEXITED(status))
+                        return WEXITSTATUS(status);
+        }
+
+        return 0;
 }

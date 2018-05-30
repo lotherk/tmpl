@@ -1,5 +1,5 @@
 PREFIX := /usr/local
-
+CFLAGS := -g
 default: all
 
 all: program
@@ -9,12 +9,12 @@ cmdline:
 	gengetopt -u -i tmpl.ggo
 
 program:
-	cc -o tmpl tmpl.c cmdline.c
+	cc -g -o tmpl tmpl.c log.c cmdline.c
 readme.md: all
 	./tmpl -c -p "erb -T-" ./README.md.erb > README.md
 	make clean
 static:
-	cc -o tmpl-static -static tmpl.c cmdline.c
+	cc -g -o tmpl-static -static tmpl.c cmdline.c
 
 clean:
 	-rm -f tmpl
@@ -29,3 +29,7 @@ install:
 deinstall:
 	-rm -f ${PREFIX}/bin/tmpl
 	-rm -f ${PREFIX}/share/man/man1/tmpl.1
+
+gdb:
+	make cmdline all
+	gdb ./tmpl
