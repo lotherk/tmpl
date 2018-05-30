@@ -62,12 +62,23 @@ static int run_command();
 int main(int argc, char **argv)
 {
         int r, i;
+        pid_t pid;
 
         mkstemp_template = NULL;
         log_file = NULL;
 
         if ((r = arg_init(argc, argv)) != 0)
                 exit(EXIT_FAILURE);
+
+        if (args.background_flag) {
+                pid = fork();
+                if (pid > 0) {
+                        exit(EXIT_SUCCESS);
+                } else if (pid < 0) {
+                        perror("daemonize");
+                        exit(EXIT_FAILURE);
+                }
+        }
 
         tmpl_setenv();
 
@@ -371,12 +382,13 @@ static int run_command()
 
         int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
         FILE *cstdin, *cstdout, *cstderr;
-        char stdin_buf[PATH_MAX], stdout_buf[PATH_MAX], stderr_buf[PATH_MAX];
+
         pid_t pid, wpid, bpid;
         int status, r;
 
         FILE *redir_stdout = stdout;
         FILE *redir_stderr = stderr;
+
 
         pipe(stdin_pipe);
         pipe(stdout_pipe);
@@ -398,15 +410,6 @@ static int run_command()
                 perror("fork");
                 exit(EXIT_FAILURE);
         } else {
-
-                if (args.background_flag) {
-                        bpid = fork();
-
-                        if (bpid > 0) {
-                                // main process, die!
-                                exit(EXIT_SUCCESS);
-                        }
-                }
 
                 if (args.stdout_given) {
                         redir_stdout = fopen(args.stdout_arg, "w");
@@ -452,6 +455,8 @@ static int run_command()
                 int i;
                 int c;
                 int s;
+
+
                 do {
                         if (ioctl(stderr_pipe[0], FIONREAD, &s) == 0 && s > 0) {
                                 for ( i = 0; i < s; i ++) {
@@ -466,23 +471,24 @@ static int run_command()
                                 }
                         }
                         waitpid(pid, &status, WNOHANG);
-                        if (status != 0)
+                        if (WIFEXITED(status)) {
+                                do_read = 0;
                                 break;
+                        }
 
                         sleep(1);
                 } while (do_read != 0);
 
+                fflush(cstdout);
+                fflush(cstderr);
                 fclose(cstdin);
                 fclose(cstdout);
                 fclose(cstderr);
-                close(stdin_pipe[1]);
-                close(stdout_pipe[0]);
-                close(stderr_pipe[0]);
 
-                if (args.stdout_given)
+                if (redir_stdout != stdout)
                         fclose(redir_stdout);
 
-                if (args.stderr_given)
+                if (redir_stderr != stderr)
                         fclose(redir_stderr);
 
                 if (WIFEXITED(status))
