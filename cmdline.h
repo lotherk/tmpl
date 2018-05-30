@@ -69,6 +69,14 @@ struct gengetopt_args_info
   char * run_arg;	/**< @brief Run COMMAND and delete template afterwards..  */
   char * run_orig;	/**< @brief Run COMMAND and delete template afterwards. original value given at command line.  */
   const char *run_help; /**< @brief Run COMMAND and delete template afterwards. help description.  */
+  int background_flag;	/**< @brief Fork to background when used with -r (default=off).  */
+  const char *background_help; /**< @brief Fork to background when used with -r help description.  */
+  char * stdout_arg;	/**< @brief Redirect STDOUT from -r to FILE.  */
+  char * stdout_orig;	/**< @brief Redirect STDOUT from -r to FILE original value given at command line.  */
+  const char *stdout_help; /**< @brief Redirect STDOUT from -r to FILE help description.  */
+  char * stderr_arg;	/**< @brief Redirect STDERR from -r to FILE.  */
+  char * stderr_orig;	/**< @brief Redirect STDERR from -r to FILE original value given at command line.  */
+  const char *stderr_help; /**< @brief Redirect STDERR from -r to FILE help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int detailed_help_given ;	/**< @brief Whether detailed-help was given.  */
@@ -83,6 +91,9 @@ struct gengetopt_args_info
   unsigned int delete_given ;	/**< @brief Whether delete was given.  */
   unsigned int program_given ;	/**< @brief Whether program was given.  */
   unsigned int run_given ;	/**< @brief Whether run was given.  */
+  unsigned int background_given ;	/**< @brief Whether background was given.  */
+  unsigned int stdout_given ;	/**< @brief Whether stdout was given.  */
+  unsigned int stderr_given ;	/**< @brief Whether stderr was given.  */
 
   char **inputs ; /**< @brief unamed options (options without names) */
   unsigned inputs_num ; /**< @brief unamed options number */

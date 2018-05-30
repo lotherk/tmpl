@@ -80,5 +80,17 @@ Variables:
         %f  - The generated mkstemp(3) file path
 "
 
+option "background" B "Fork to background when used with -r"
+        flag off
+        dependon="run"
+
+option "stdout" - "Redirect STDOUT from -r to FILE"
+        string typestr="FILE" optional
+        dependon="run"
+
+option "stderr" - "Redirect STDERR from -r to FILE"
+        string typestr="FILE" optional
+        dependon="run"
+
 text "
 See tmpl(1) for more informations and examples."

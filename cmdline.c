@@ -54,6 +54,9 @@ const char *gengetopt_args_info_detailed_help[] = {
   "  Example: tmpl -p /usr/local/bin/ruby ~/.mutt.tmpl.rb\n",
   "  -r, --run=COMMAND             Run COMMAND and delete template afterwards.",
   "  Instead of returning the path, tmpl runs COMMAND\n  and deletes the mkstemp(3) file after COMMAND returns.\n  It then exits with the return code of COMMAND.\n\n  Example: tmpl -r \"neomutt -F %f\" ~/.mutt.tmpl.sh\n\n  Variables:\n          %f  - The generated mkstemp(3) file path\n",
+  "  -B, --background              Fork to background when used with -r\n                                  (default=off)",
+  "      --stdout=FILE             Redirect STDOUT from -r to FILE",
+  "      --stderr=FILE             Redirect STDERR from -r to FILE",
   "\nSee tmpl(1) for more informations and examples.",
     0
 };
@@ -77,11 +80,14 @@ init_help_array(void)
   gengetopt_args_info_help[13] = gengetopt_args_info_detailed_help[16];
   gengetopt_args_info_help[14] = gengetopt_args_info_detailed_help[18];
   gengetopt_args_info_help[15] = gengetopt_args_info_detailed_help[20];
-  gengetopt_args_info_help[16] = 0; 
+  gengetopt_args_info_help[16] = gengetopt_args_info_detailed_help[21];
+  gengetopt_args_info_help[17] = gengetopt_args_info_detailed_help[22];
+  gengetopt_args_info_help[18] = gengetopt_args_info_detailed_help[23];
+  gengetopt_args_info_help[19] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[17];
+const char *gengetopt_args_info_help[20];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -121,6 +127,9 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->delete_given = 0 ;
   args_info->program_given = 0 ;
   args_info->run_given = 0 ;
+  args_info->background_given = 0 ;
+  args_info->stdout_given = 0 ;
+  args_info->stderr_given = 0 ;
 }
 
 static
@@ -142,6 +151,11 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->program_orig = NULL;
   args_info->run_arg = NULL;
   args_info->run_orig = NULL;
+  args_info->background_flag = 0;
+  args_info->stdout_arg = NULL;
+  args_info->stdout_orig = NULL;
+  args_info->stderr_arg = NULL;
+  args_info->stderr_orig = NULL;
   
 }
 
@@ -165,6 +179,9 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->delete_help = gengetopt_args_info_detailed_help[15] ;
   args_info->program_help = gengetopt_args_info_detailed_help[16] ;
   args_info->run_help = gengetopt_args_info_detailed_help[18] ;
+  args_info->background_help = gengetopt_args_info_detailed_help[20] ;
+  args_info->stdout_help = gengetopt_args_info_detailed_help[21] ;
+  args_info->stderr_help = gengetopt_args_info_detailed_help[22] ;
   
 }
 
@@ -317,6 +334,10 @@ cmdline_parser_release (struct gengetopt_args_info *args_info)
   free_string_field (&(args_info->program_orig));
   free_string_field (&(args_info->run_arg));
   free_string_field (&(args_info->run_orig));
+  free_string_field (&(args_info->stdout_arg));
+  free_string_field (&(args_info->stdout_orig));
+  free_string_field (&(args_info->stderr_arg));
+  free_string_field (&(args_info->stderr_orig));
   
   
   for (i = 0; i < args_info->inputs_num; ++i)
@@ -385,6 +406,12 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "program", args_info->program_orig, 0);
   if (args_info->run_given)
     write_into_file(outfile, "run", args_info->run_orig, 0);
+  if (args_info->background_given)
+    write_into_file(outfile, "background", 0, 0 );
+  if (args_info->stdout_given)
+    write_into_file(outfile, "stdout", args_info->stdout_orig, 0);
+  if (args_info->stderr_given)
+    write_into_file(outfile, "stderr", args_info->stderr_orig, 0);
   
 
   i = EXIT_SUCCESS;
@@ -641,6 +668,21 @@ cmdline_parser_required2 (struct gengetopt_args_info *args_info, const char *pro
   
   
   /* checks for dependences among options */
+  if (args_info->background_given && ! args_info->run_given)
+    {
+      fprintf (stderr, "%s: '--background' ('-B') option depends on option 'run'%s\n", prog_name, (additional_error ? additional_error : ""));
+      error_occurred = 1;
+    }
+  if (args_info->stdout_given && ! args_info->run_given)
+    {
+      fprintf (stderr, "%s: '--stdout' option depends on option 'run'%s\n", prog_name, (additional_error ? additional_error : ""));
+      error_occurred = 1;
+    }
+  if (args_info->stderr_given && ! args_info->run_given)
+    {
+      fprintf (stderr, "%s: '--stderr' option depends on option 'run'%s\n", prog_name, (additional_error ? additional_error : ""));
+      error_occurred = 1;
+    }
 
   return error_occurred;
 }
@@ -958,10 +1000,13 @@ cmdline_parser_internal (
         { "delete",	1, NULL, 'd' },
         { "program",	1, NULL, 'p' },
         { "run",	1, NULL, 'r' },
+        { "background",	0, NULL, 'B' },
+        { "stdout",	1, NULL, 0 },
+        { "stderr",	1, NULL, 0 },
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVlL:v:fcT:e:d:p:r:", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVlL:v:fcT:e:d:p:r:B", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -1088,6 +1133,16 @@ cmdline_parser_internal (
             goto failure;
         
           break;
+        case 'B':	/* Fork to background when used with -r.  */
+        
+        
+          if (update_arg((void *)&(args_info->background_flag), 0, &(args_info->background_given),
+              &(local_args_info.background_given), optarg, 0, 0, ARG_FLAG,
+              check_ambiguity, override, 1, 0, "background", 'B',
+              additional_error))
+            goto failure;
+        
+          break;
 
         case 0:	/* Long option with no short option */
           if (strcmp (long_options[option_index].name, "detailed-help") == 0) {
@@ -1096,6 +1151,36 @@ cmdline_parser_internal (
             exit (EXIT_SUCCESS);
           }
 
+          /* Redirect STDOUT from -r to FILE.  */
+          if (strcmp (long_options[option_index].name, "stdout") == 0)
+          {
+          
+          
+            if (update_arg( (void *)&(args_info->stdout_arg), 
+                 &(args_info->stdout_orig), &(args_info->stdout_given),
+                &(local_args_info.stdout_given), optarg, 0, 0, ARG_STRING,
+                check_ambiguity, override, 0, 0,
+                "stdout", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          /* Redirect STDERR from -r to FILE.  */
+          else if (strcmp (long_options[option_index].name, "stderr") == 0)
+          {
+          
+          
+            if (update_arg( (void *)&(args_info->stderr_arg), 
+                 &(args_info->stderr_orig), &(args_info->stderr_given),
+                &(local_args_info.stderr_given), optarg, 0, 0, ARG_STRING,
+                check_ambiguity, override, 0, 0,
+                "stderr", '-',
+                additional_error))
+              goto failure;
+          
+          }
+          
+          break;
         case '?':	/* Invalid option.  */
           /* `getopt_long' already printed an error message.  */
           goto failure;

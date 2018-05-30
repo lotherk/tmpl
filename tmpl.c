@@ -64,6 +64,7 @@ int main(int argc, char **argv)
 
         mkstemp_template = NULL;
         log_file = NULL;
+
         if ((r = arg_init(argc, argv)) != 0)
                 exit(EXIT_FAILURE);
 
@@ -307,6 +308,7 @@ static int write_mkstemp()
 
 static void run_command_child()
 {
+
 	char *ptr, *arg, *program, *command;
 	char *delim = " ";
 	char *arguments[PATH_MAX];
@@ -316,6 +318,7 @@ static void run_command_child()
 	int i;
 
         command = args.run_arg;
+
 
 	arg = NULL;
 	program = strtok_r(command, delim, &arg);
@@ -365,18 +368,111 @@ static void run_command_child()
 static int run_command()
 {
 
+        int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
+        FILE *cstdin, *cstdout, *cstderr;
+        char stdin_buf[PATH_MAX], stdout_buf[PATH_MAX], stderr_buf[PATH_MAX];
         pid_t pid, wpid;
         int status, r;
+
+        FILE *redir_stdout = stdout;
+        FILE *redir_stderr = stderr;
+
+        pipe(stdin_pipe);
+        pipe(stdout_pipe);
+        pipe(stderr_pipe);
 
         pid = fork();
 
         if (pid == 0) {
+                close(stdin_pipe[1]);
+                close(stdout_pipe[0]);
+                close(stderr_pipe[0]);
+
+                dup2(stdin_pipe[0], STDIN_FILENO);
+                dup2(stdout_pipe[1], STDOUT_FILENO);
+                dup2(stderr_pipe[1], STDERR_FILENO);
+
                 run_command_child();
         } else if (pid < 0) {
                 perror("fork");
                 exit(EXIT_FAILURE);
         } else {
+                if (args.stdout_given) {
+                        redir_stdout = fopen(args.stdout_arg, "w");
+                        if (redir_stdout == NULL) {
+                                perror("redir_stdout");
+                                exit(EXIT_FAILURE);
+                        }
+                }
+
+                if (args.stderr_given) {
+                        redir_stderr = fopen(args.stderr_arg, "w");
+                        if (redir_stderr == NULL) {
+                                perror("redir_stderr");
+                                exit(EXIT_FAILURE);
+                        }
+                }
+
+                close(stdin_pipe[0]);
+                close(stdout_pipe[1]);
+                close(stderr_pipe[1]);
+
+                cstdin = fdopen(stdin_pipe[1], "w");
+                if (cstdin == NULL) {
+                       perror("cstdin");
+                       exit(EXIT_FAILURE);
+                }
+
+                cstdout = fdopen(stdout_pipe[0], "r");
+                if (cstdout == NULL) {
+                        perror("cstdout");
+                        exit(EXIT_FAILURE);
+                }
+
+                cstderr = fdopen(stderr_pipe[0], "r");
+                if (cstderr == NULL) {
+                        perror("cstderr");
+                        exit(EXIT_FAILURE);
+                }
+
+                int do_read = 1;
+                int od = 0;
+                int ed = 0;
+
+                while (do_read != 0) {
+                        if (fgets(stdout_buf, PATH_MAX, cstdout) != NULL) {
+                                fprintf(redir_stdout, "%s", stdout_buf);
+                                fflush(redir_stdout);
+                        } else {
+                                od = 1;
+                        }
+                        if (fgets(stderr_buf, PATH_MAX, cstderr) != NULL) {
+                                fprintf(redir_stderr, "%s", stderr_buf);
+                                fflush(redir_stderr);
+                        } else {
+                                ed = 1;
+                        }
+
+                        if (ed && od) {
+                                do_read = 0;
+                                break;
+                        }
+                }
+                fclose(cstdin);
+                fclose(cstdout);
+                fclose(cstderr);
+                close(stdin_pipe[1]);
+                close(stdout_pipe[0]);
+                close(stderr_pipe[0]);
+
+                if (args.stdout_given)
+                        fclose(redir_stdout);
+
+                if (args.stderr_given)
+                        fclose(redir_stderr);
+
                 while ((wpid = wait(&status)) > 0);
+
                 if (WIFEXITED(status))
                         return WEXITSTATUS(status);
         }
