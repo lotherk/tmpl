@@ -1,5 +1,7 @@
 PREFIX := /usr/local
 CFLAGS := -g
+MANDIR := ${PREFIX}/man/man1/
+
 default: all
 
 all: program
@@ -22,12 +24,11 @@ clean:
 install:
 	install -d ${PREFIX}/bin
 	install -m 755 tmpl ${PREFIX}/bin/
-	install -d ${PREFIX}/share/man/man1/
-	install -m 644 tmpl.1  ${PREFIX}/share/man/man1/
+	install -m 644 tmpl.1  ${MANDIR}/
 
 deinstall:
 	-rm -f ${PREFIX}/bin/tmpl
-	-rm -f ${PREFIX}/share/man/man1/tmpl.1
+	-rm -f ${MANDIR}/tmpl.1
 
 gdb:
 	make cmdline all

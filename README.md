@@ -20,30 +20,6 @@ Usage: tmpl [OPTIONS]... [FILES]...
                                   options, and exit
   -V, --version                 Print version and exit
 
-General:
-
-
-  -l, --log                     Enable logging  (default=off)
-  -L, --log-file=FILE           Write logs to FILE  (default=`/dev/stderr')
-  -v, --verbose=INT             Be more verbose. Can be specified multiple
-                                  times to a maximum of 7
-  
-  Occurances    Level
-  1             Fatal
-  2             Critical
-  3             Error
-  4             Warning
-  5             Info
-  6             Debug
-  7             All
-
-  Examples:
-
-  log all Critical and thus also Fatal messages
-  # tmpl -v 2 ...
-
-  log all messages
-  # tmpl -v 7 ...
 
   -f, --force                   Force output generation even if PROGRAM fails
                                   on a template. Use with caution!
@@ -53,18 +29,19 @@ General:
   unwanted
   behaviour if you use tmpl for config file generation.
 
-  -c, --cat                     Print buffer to STDOUT (does not write
-                                  mkstemp(3) file)  (default=off)
   -T, --mkstemp-template=FORMAT Set mkstemp(3) template.
                                   (default=`/tmp/.tmpl-XXXXXXXXXX')
   See mkstemp(3) man page
-  -e, --environment=KEY=VALUE   Set environment variable ENV to VALUE prior to
+  -e, --env=KEY=VALUE           Set environment variable ENV to VALUE prior to
                                   running PROGRAM or COMMAND
   -d, --delete=N                Spawns new process which deletes mkstemp(3)
                                   file after N seconds.
   -p, --program=PROGRAM         Pass templateN to PROGRAM.  (default=`/bin/sh')
   Example: tmpl -p /usr/local/bin/ruby ~/.mutt.tmpl.rb
 
+
+  -c, --cat                     Print buffer to STDOUT (does not write
+                                  mkstemp(3) file)  (default=off)
   -r, --run=COMMAND             Run COMMAND and delete template afterwards.
   Instead of returning the path, tmpl runs COMMAND
   and deletes the mkstemp(3) file after COMMAND returns.
