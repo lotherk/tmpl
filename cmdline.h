@@ -42,8 +42,6 @@ struct gengetopt_args_info
   const char *version_help; /**< @brief Print version and exit help description.  */
   int force_flag;	/**< @brief Force output generation even if PROGRAM fails on a template. Use with caution! (default=off).  */
   const char *force_help; /**< @brief Force output generation even if PROGRAM fails on a template. Use with caution! help description.  */
-  int cat_flag;	/**< @brief Print buffer to STDOUT (does not write mkstemp(3) file) (default=off).  */
-  const char *cat_help; /**< @brief Print buffer to STDOUT (does not write mkstemp(3) file) help description.  */
   char * mkstemp_template_arg;	/**< @brief Set mkstemp(3) template. (default='/tmp/.tmpl-XXXXXXXXXX').  */
   char * mkstemp_template_orig;	/**< @brief Set mkstemp(3) template. original value given at command line.  */
   const char *mkstemp_template_help; /**< @brief Set mkstemp(3) template. help description.  */
@@ -58,6 +56,8 @@ struct gengetopt_args_info
   char * program_arg;	/**< @brief Pass templateN to PROGRAM. (default='/bin/sh').  */
   char * program_orig;	/**< @brief Pass templateN to PROGRAM. original value given at command line.  */
   const char *program_help; /**< @brief Pass templateN to PROGRAM. help description.  */
+  int cat_flag;	/**< @brief Print buffer to STDOUT (does not write mkstemp(3) file) (default=off).  */
+  const char *cat_help; /**< @brief Print buffer to STDOUT (does not write mkstemp(3) file) help description.  */
   char * run_arg;	/**< @brief Run COMMAND and delete template afterwards..  */
   char * run_orig;	/**< @brief Run COMMAND and delete template afterwards. original value given at command line.  */
   const char *run_help; /**< @brief Run COMMAND and delete template afterwards. help description.  */
@@ -74,11 +74,11 @@ struct gengetopt_args_info
   unsigned int detailed_help_given ;	/**< @brief Whether detailed-help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int force_given ;	/**< @brief Whether force was given.  */
-  unsigned int cat_given ;	/**< @brief Whether cat was given.  */
   unsigned int mkstemp_template_given ;	/**< @brief Whether mkstemp-template was given.  */
   unsigned int environment_given ;	/**< @brief Whether environment was given.  */
   unsigned int delete_given ;	/**< @brief Whether delete was given.  */
   unsigned int program_given ;	/**< @brief Whether program was given.  */
+  unsigned int cat_given ;	/**< @brief Whether cat was given.  */
   unsigned int run_given ;	/**< @brief Whether run was given.  */
   unsigned int background_given ;	/**< @brief Whether background was given.  */
   unsigned int stdout_given ;	/**< @brief Whether stdout was given.  */

@@ -15,8 +15,6 @@ will be added to the global buffer, instead of aborting. This might lead to unwa
 behaviour if you use tmpl for config file generation.
 "
 
-option "cat" c "Print buffer to STDOUT (does not write mkstemp(3) file)"
-        flag off
 
 option "mkstemp-template" T "Set mkstemp(3) template."
         string typestr="FORMAT"
@@ -36,6 +34,9 @@ option "program" p "Pass templateN to PROGRAM."
         string typestr="PROGRAM" default="/bin/sh" optional
         details="Example: tmpl -p /usr/local/bin/ruby ~/.mutt.tmpl.rb
 "
+text ""
+option "cat" c "Print buffer to STDOUT (does not write mkstemp(3) file)"
+        flag off
 
 option "run" r "Run COMMAND and delete template afterwards."
         string typestr="COMMAND" optional
@@ -51,15 +52,12 @@ Variables:
 
 option "background" B "Fork to background when used with -r"
         flag off
-        dependon="run"
 
 option "stdout" - "Redirect STDOUT from -r to FILE"
         string typestr="FILE" optional
-        dependon="run"
 
 option "stderr" - "Redirect STDERR from -r to FILE"
         string typestr="FILE" optional
-        dependon="run"
 
 text "
 See tmpl(1) for more informations and examples."

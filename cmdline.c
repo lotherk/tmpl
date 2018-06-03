@@ -40,13 +40,14 @@ const char *gengetopt_args_info_detailed_help[] = {
   "\n",
   "  -f, --force                   Force output generation even if PROGRAM fails\n                                  on a template. Use with caution!\n                                  (default=off)",
   "  If PROGRAM fails on a template, no data (from that template)\n  will be added to the global buffer, instead of aborting. This might lead to\n  unwanted\n  behaviour if you use tmpl for config file generation.\n",
-  "  -c, --cat                     Print buffer to STDOUT (does not write\n                                  mkstemp(3) file)  (default=off)",
   "  -T, --mkstemp-template=FORMAT Set mkstemp(3) template.\n                                  (default=`/tmp/.tmpl-XXXXXXXXXX')",
   "  See mkstemp(3) man page",
   "  -e, --environment=KEY=VALUE   Set environment variable ENV to VALUE prior to\n                                  running PROGRAM or COMMAND",
   "  -d, --delete=N                Spawns new process which deletes mkstemp(3)\n                                  file after N seconds.",
   "  -p, --program=PROGRAM         Pass templateN to PROGRAM.  (default=`/bin/sh')",
   "  Example: tmpl -p /usr/local/bin/ruby ~/.mutt.tmpl.rb\n",
+  "",
+  "  -c, --cat                     Print buffer to STDOUT (does not write\n                                  mkstemp(3) file)  (default=off)",
   "  -r, --run=COMMAND             Run COMMAND and delete template afterwards.",
   "  Instead of returning the path, tmpl runs COMMAND\n  and deletes the mkstemp(3) file after COMMAND returns.\n  It then exits with the return code of COMMAND.\n\n  Example: tmpl -r \"neomutt -F %f\" ~/.mutt.tmpl.sh\n\n  Variables:\n          %f  - The generated mkstemp(3) file path\n",
   "  -B, --background              Fork to background when used with -r\n                                  (default=off)",
@@ -65,20 +66,21 @@ init_help_array(void)
   gengetopt_args_info_help[3] = gengetopt_args_info_detailed_help[3];
   gengetopt_args_info_help[4] = gengetopt_args_info_detailed_help[4];
   gengetopt_args_info_help[5] = gengetopt_args_info_detailed_help[6];
-  gengetopt_args_info_help[6] = gengetopt_args_info_detailed_help[7];
+  gengetopt_args_info_help[6] = gengetopt_args_info_detailed_help[8];
   gengetopt_args_info_help[7] = gengetopt_args_info_detailed_help[9];
   gengetopt_args_info_help[8] = gengetopt_args_info_detailed_help[10];
-  gengetopt_args_info_help[9] = gengetopt_args_info_detailed_help[11];
+  gengetopt_args_info_help[9] = gengetopt_args_info_detailed_help[12];
   gengetopt_args_info_help[10] = gengetopt_args_info_detailed_help[13];
-  gengetopt_args_info_help[11] = gengetopt_args_info_detailed_help[15];
+  gengetopt_args_info_help[11] = gengetopt_args_info_detailed_help[14];
   gengetopt_args_info_help[12] = gengetopt_args_info_detailed_help[16];
   gengetopt_args_info_help[13] = gengetopt_args_info_detailed_help[17];
   gengetopt_args_info_help[14] = gengetopt_args_info_detailed_help[18];
-  gengetopt_args_info_help[15] = 0; 
+  gengetopt_args_info_help[15] = gengetopt_args_info_detailed_help[19];
+  gengetopt_args_info_help[16] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[16];
+const char *gengetopt_args_info_help[17];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -108,11 +110,11 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->detailed_help_given = 0 ;
   args_info->version_given = 0 ;
   args_info->force_given = 0 ;
-  args_info->cat_given = 0 ;
   args_info->mkstemp_template_given = 0 ;
   args_info->environment_given = 0 ;
   args_info->delete_given = 0 ;
   args_info->program_given = 0 ;
+  args_info->cat_given = 0 ;
   args_info->run_given = 0 ;
   args_info->background_given = 0 ;
   args_info->stdout_given = 0 ;
@@ -124,7 +126,6 @@ void clear_args (struct gengetopt_args_info *args_info)
 {
   FIX_UNUSED (args_info);
   args_info->force_flag = 0;
-  args_info->cat_flag = 0;
   args_info->mkstemp_template_arg = gengetopt_strdup ("/tmp/.tmpl-XXXXXXXXXX");
   args_info->mkstemp_template_orig = NULL;
   args_info->environment_arg = NULL;
@@ -132,6 +133,7 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->delete_orig = NULL;
   args_info->program_arg = gengetopt_strdup ("/bin/sh");
   args_info->program_orig = NULL;
+  args_info->cat_flag = 0;
   args_info->run_arg = NULL;
   args_info->run_orig = NULL;
   args_info->background_flag = 0;
@@ -151,17 +153,17 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->detailed_help_help = gengetopt_args_info_detailed_help[1] ;
   args_info->version_help = gengetopt_args_info_detailed_help[2] ;
   args_info->force_help = gengetopt_args_info_detailed_help[4] ;
-  args_info->cat_help = gengetopt_args_info_detailed_help[6] ;
-  args_info->mkstemp_template_help = gengetopt_args_info_detailed_help[7] ;
-  args_info->environment_help = gengetopt_args_info_detailed_help[9] ;
+  args_info->mkstemp_template_help = gengetopt_args_info_detailed_help[6] ;
+  args_info->environment_help = gengetopt_args_info_detailed_help[8] ;
   args_info->environment_min = 0;
   args_info->environment_max = 0;
-  args_info->delete_help = gengetopt_args_info_detailed_help[10] ;
-  args_info->program_help = gengetopt_args_info_detailed_help[11] ;
-  args_info->run_help = gengetopt_args_info_detailed_help[13] ;
-  args_info->background_help = gengetopt_args_info_detailed_help[15] ;
-  args_info->stdout_help = gengetopt_args_info_detailed_help[16] ;
-  args_info->stderr_help = gengetopt_args_info_detailed_help[17] ;
+  args_info->delete_help = gengetopt_args_info_detailed_help[9] ;
+  args_info->program_help = gengetopt_args_info_detailed_help[10] ;
+  args_info->cat_help = gengetopt_args_info_detailed_help[13] ;
+  args_info->run_help = gengetopt_args_info_detailed_help[14] ;
+  args_info->background_help = gengetopt_args_info_detailed_help[16] ;
+  args_info->stdout_help = gengetopt_args_info_detailed_help[17] ;
+  args_info->stderr_help = gengetopt_args_info_detailed_help[18] ;
   
 }
 
@@ -365,8 +367,6 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "version", 0, 0 );
   if (args_info->force_given)
     write_into_file(outfile, "force", 0, 0 );
-  if (args_info->cat_given)
-    write_into_file(outfile, "cat", 0, 0 );
   if (args_info->mkstemp_template_given)
     write_into_file(outfile, "mkstemp-template", args_info->mkstemp_template_orig, 0);
   write_multiple_into_file(outfile, args_info->environment_given, "environment", args_info->environment_orig, 0);
@@ -374,6 +374,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "delete", args_info->delete_orig, 0);
   if (args_info->program_given)
     write_into_file(outfile, "program", args_info->program_orig, 0);
+  if (args_info->cat_given)
+    write_into_file(outfile, "cat", 0, 0 );
   if (args_info->run_given)
     write_into_file(outfile, "run", args_info->run_orig, 0);
   if (args_info->background_given)
@@ -638,21 +640,6 @@ cmdline_parser_required2 (struct gengetopt_args_info *args_info, const char *pro
   
   
   /* checks for dependences among options */
-  if (args_info->background_given && ! args_info->run_given)
-    {
-      fprintf (stderr, "%s: '--background' ('-B') option depends on option 'run'%s\n", prog_name, (additional_error ? additional_error : ""));
-      error_occurred = 1;
-    }
-  if (args_info->stdout_given && ! args_info->run_given)
-    {
-      fprintf (stderr, "%s: '--stdout' option depends on option 'run'%s\n", prog_name, (additional_error ? additional_error : ""));
-      error_occurred = 1;
-    }
-  if (args_info->stderr_given && ! args_info->run_given)
-    {
-      fprintf (stderr, "%s: '--stderr' option depends on option 'run'%s\n", prog_name, (additional_error ? additional_error : ""));
-      error_occurred = 1;
-    }
 
   return error_occurred;
 }
@@ -947,11 +934,11 @@ cmdline_parser_internal (
         { "detailed-help",	0, NULL, 0 },
         { "version",	0, NULL, 'V' },
         { "force",	0, NULL, 'f' },
-        { "cat",	0, NULL, 'c' },
         { "mkstemp-template",	1, NULL, 'T' },
         { "environment",	1, NULL, 'e' },
         { "delete",	1, NULL, 'd' },
         { "program",	1, NULL, 'p' },
+        { "cat",	0, NULL, 'c' },
         { "run",	1, NULL, 'r' },
         { "background",	0, NULL, 'B' },
         { "stdout",	1, NULL, 0 },
@@ -959,7 +946,7 @@ cmdline_parser_internal (
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVfcT:e:d:p:r:B", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVfT:e:d:p:cr:B", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -981,16 +968,6 @@ cmdline_parser_internal (
           if (update_arg((void *)&(args_info->force_flag), 0, &(args_info->force_given),
               &(local_args_info.force_given), optarg, 0, 0, ARG_FLAG,
               check_ambiguity, override, 1, 0, "force", 'f',
-              additional_error))
-            goto failure;
-        
-          break;
-        case 'c':	/* Print buffer to STDOUT (does not write mkstemp(3) file).  */
-        
-        
-          if (update_arg((void *)&(args_info->cat_flag), 0, &(args_info->cat_given),
-              &(local_args_info.cat_given), optarg, 0, 0, ARG_FLAG,
-              check_ambiguity, override, 1, 0, "cat", 'c',
               additional_error))
             goto failure;
         
@@ -1036,6 +1013,16 @@ cmdline_parser_internal (
               &(local_args_info.program_given), optarg, 0, "/bin/sh", ARG_STRING,
               check_ambiguity, override, 0, 0,
               "program", 'p',
+              additional_error))
+            goto failure;
+        
+          break;
+        case 'c':	/* Print buffer to STDOUT (does not write mkstemp(3) file).  */
+        
+        
+          if (update_arg((void *)&(args_info->cat_flag), 0, &(args_info->cat_given),
+              &(local_args_info.cat_given), optarg, 0, 0, ARG_FLAG,
+              check_ambiguity, override, 1, 0, "cat", 'c',
               additional_error))
             goto failure;
         

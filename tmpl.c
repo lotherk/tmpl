@@ -64,10 +64,7 @@ int main(int argc, char **argv)
                 exit(EXIT_FAILURE);
 
         if (args.background_flag) {
-                pid = fork();
-                if (pid > 0) {
-                        exit(EXIT_SUCCESS);
-                } else if (pid < 0) {
+                if (daemon(0, 0) != 0) {
                         perror("daemonize");
                         exit(EXIT_FAILURE);
                 }
@@ -145,6 +142,12 @@ static int arg_init(int argc, char **argv)
         if((r = cmdline_parser(argc, argv, &args)) != 0)
                 exit(EXIT_FAILURE);
 
+
+        if (!args.run_given && (args.stdout_given || args.stderr_given || args.background_flag)) {
+                fprintf(stderr, "tmpl: -r required, see --help\n");
+                fflush(stderr);
+                exit(EXIT_FAILURE);
+        }
 
         return 0;
 }
