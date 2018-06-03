@@ -22,7 +22,7 @@ option "mkstemp-template" T "Set mkstemp(3) template."
         default="/tmp/.tmpl-XXXXXXXXXX"
         optional
 
-option "environment" e "Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND"
+option "env" e "Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND"
         string typestr="KEY=VALUE"
         multiple optional
 

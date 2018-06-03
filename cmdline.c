@@ -42,7 +42,7 @@ const char *gengetopt_args_info_detailed_help[] = {
   "  If PROGRAM fails on a template, no data (from that template)\n  will be added to the global buffer, instead of aborting. This might lead to\n  unwanted\n  behaviour if you use tmpl for config file generation.\n",
   "  -T, --mkstemp-template=FORMAT Set mkstemp(3) template.\n                                  (default=`/tmp/.tmpl-XXXXXXXXXX')",
   "  See mkstemp(3) man page",
-  "  -e, --environment=KEY=VALUE   Set environment variable ENV to VALUE prior to\n                                  running PROGRAM or COMMAND",
+  "  -e, --env=KEY=VALUE           Set environment variable ENV to VALUE prior to\n                                  running PROGRAM or COMMAND",
   "  -d, --delete=N                Spawns new process which deletes mkstemp(3)\n                                  file after N seconds.",
   "  -p, --program=PROGRAM         Pass templateN to PROGRAM.  (default=`/bin/sh')",
   "  Example: tmpl -p /usr/local/bin/ruby ~/.mutt.tmpl.rb\n",
@@ -111,7 +111,7 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->version_given = 0 ;
   args_info->force_given = 0 ;
   args_info->mkstemp_template_given = 0 ;
-  args_info->environment_given = 0 ;
+  args_info->env_given = 0 ;
   args_info->delete_given = 0 ;
   args_info->program_given = 0 ;
   args_info->cat_given = 0 ;
@@ -128,8 +128,8 @@ void clear_args (struct gengetopt_args_info *args_info)
   args_info->force_flag = 0;
   args_info->mkstemp_template_arg = gengetopt_strdup ("/tmp/.tmpl-XXXXXXXXXX");
   args_info->mkstemp_template_orig = NULL;
-  args_info->environment_arg = NULL;
-  args_info->environment_orig = NULL;
+  args_info->env_arg = NULL;
+  args_info->env_orig = NULL;
   args_info->delete_orig = NULL;
   args_info->program_arg = gengetopt_strdup ("/bin/sh");
   args_info->program_orig = NULL;
@@ -154,9 +154,9 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->version_help = gengetopt_args_info_detailed_help[2] ;
   args_info->force_help = gengetopt_args_info_detailed_help[4] ;
   args_info->mkstemp_template_help = gengetopt_args_info_detailed_help[6] ;
-  args_info->environment_help = gengetopt_args_info_detailed_help[8] ;
-  args_info->environment_min = 0;
-  args_info->environment_max = 0;
+  args_info->env_help = gengetopt_args_info_detailed_help[8] ;
+  args_info->env_min = 0;
+  args_info->env_max = 0;
   args_info->delete_help = gengetopt_args_info_detailed_help[9] ;
   args_info->program_help = gengetopt_args_info_detailed_help[10] ;
   args_info->cat_help = gengetopt_args_info_detailed_help[13] ;
@@ -306,7 +306,7 @@ cmdline_parser_release (struct gengetopt_args_info *args_info)
   unsigned int i;
   free_string_field (&(args_info->mkstemp_template_arg));
   free_string_field (&(args_info->mkstemp_template_orig));
-  free_multiple_string_field (args_info->environment_given, &(args_info->environment_arg), &(args_info->environment_orig));
+  free_multiple_string_field (args_info->env_given, &(args_info->env_arg), &(args_info->env_orig));
   free_string_field (&(args_info->delete_orig));
   free_string_field (&(args_info->program_arg));
   free_string_field (&(args_info->program_orig));
@@ -369,7 +369,7 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "force", 0, 0 );
   if (args_info->mkstemp_template_given)
     write_into_file(outfile, "mkstemp-template", args_info->mkstemp_template_orig, 0);
-  write_multiple_into_file(outfile, args_info->environment_given, "environment", args_info->environment_orig, 0);
+  write_multiple_into_file(outfile, args_info->env_given, "env", args_info->env_orig, 0);
   if (args_info->delete_given)
     write_into_file(outfile, "delete", args_info->delete_orig, 0);
   if (args_info->program_given)
@@ -635,7 +635,7 @@ cmdline_parser_required2 (struct gengetopt_args_info *args_info, const char *pro
   FIX_UNUSED (additional_error);
 
   /* checks for required options */
-  if (check_multiple_option_occurrences(prog_name, args_info->environment_given, args_info->environment_min, args_info->environment_max, "'--environment' ('-e')"))
+  if (check_multiple_option_occurrences(prog_name, args_info->env_given, args_info->env_min, args_info->env_max, "'--env' ('-e')"))
      error_occurred = 1;
   
   
@@ -899,7 +899,7 @@ cmdline_parser_internal (
 {
   int c;	/* Character of the parsed option.  */
 
-  struct generic_list * environment_list = NULL;
+  struct generic_list * env_list = NULL;
   int error_occurred = 0;
   struct gengetopt_args_info local_args_info;
   
@@ -935,7 +935,7 @@ cmdline_parser_internal (
         { "version",	0, NULL, 'V' },
         { "force",	0, NULL, 'f' },
         { "mkstemp-template",	1, NULL, 'T' },
-        { "environment",	1, NULL, 'e' },
+        { "env",	1, NULL, 'e' },
         { "delete",	1, NULL, 'd' },
         { "program",	1, NULL, 'p' },
         { "cat",	0, NULL, 'c' },
@@ -986,9 +986,9 @@ cmdline_parser_internal (
           break;
         case 'e':	/* Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND.  */
         
-          if (update_multiple_arg_temp(&environment_list, 
-              &(local_args_info.environment_given), optarg, 0, 0, ARG_STRING,
-              "environment", 'e',
+          if (update_multiple_arg_temp(&env_list, 
+              &(local_args_info.env_given), optarg, 0, 0, ARG_STRING,
+              "env", 'e',
               additional_error))
             goto failure;
         
@@ -1098,13 +1098,13 @@ cmdline_parser_internal (
     } /* while */
 
 
-  update_multiple_arg((void *)&(args_info->environment_arg),
-    &(args_info->environment_orig), args_info->environment_given,
-    local_args_info.environment_given, 0,
-    ARG_STRING, environment_list);
+  update_multiple_arg((void *)&(args_info->env_arg),
+    &(args_info->env_orig), args_info->env_given,
+    local_args_info.env_given, 0,
+    ARG_STRING, env_list);
 
-  args_info->environment_given += local_args_info.environment_given;
-  local_args_info.environment_given = 0;
+  args_info->env_given += local_args_info.env_given;
+  local_args_info.env_given = 0;
   
   if (check_required)
     {
@@ -1143,7 +1143,7 @@ cmdline_parser_internal (
   return 0;
 
 failure:
-  free_list (environment_list, 1 );
+  free_list (env_list, 1 );
   
   cmdline_parser_release (&local_args_info);
   return (EXIT_FAILURE);

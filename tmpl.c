@@ -45,6 +45,8 @@
 static char *mkstemp_template, *template_buffer;
 static struct gengetopt_args_info args;
 
+static int run_command_exit_code;
+
 static int arg_init(int argc, char **argv);
 static int tmpl_quit(int code);
 static void tmpl_setenv();
@@ -59,6 +61,9 @@ int main(int argc, char **argv)
         pid_t pid;
 
         mkstemp_template = NULL;
+        template_buffer = NULL;
+
+        run_command_exit_code = 0;
 
         if ((r = arg_init(argc, argv)) != 0)
                 exit(EXIT_FAILURE);
@@ -98,10 +103,7 @@ int main(int argc, char **argv)
         }
 
         if (args.run_given) {
-                int code;
-                code = run_command();
-
-                if (code < 0) {
+                if ((r = run_command()) != 0) {
                         perror("run_command");
                         exit(EXIT_FAILURE);
                 }
@@ -111,27 +113,27 @@ int main(int argc, char **argv)
                 if (r != 0)
                         perror("unlink mkstemp_template");
 
-                return tmpl_quit(code);
+                return tmpl_quit(run_command_exit_code);
         }
 
-        fprintf(stdout, "%s\n", mkstemp_template);
 
         if (args.delete_given) {
                 pid = fork();
 
-                if (pid > 0) {
-                        exit(tmpl_quit(0));
+                if (pid == 0) {
+                        daemon(0, 0);
+
+                        sleep(args.delete_arg);
+                        r = unlink(mkstemp_template);
+                        exit(tmpl_quit(r));
                 } else if (pid < 0) {
                         perror("fork for delete");
                         exit(EXIT_FAILURE);
                 }
-                daemon(0, 0);
-
-                sleep(args.delete_arg);
-                r = unlink(mkstemp_template);
-                exit(tmpl_quit(r));
         }
 
+        fprintf(stdout, "%s\n", mkstemp_template);
+        fflush(stdout);
         return tmpl_quit(0);
 }
 
@@ -156,9 +158,9 @@ static void tmpl_setenv()
 {
         int i, r;
         const char *delim = "=";
-        for (i = 0; i < args.environment_given; i++) {
+        for (i = 0; i < args.env_given; i++) {
                 char *key, *value;
-                key = strtok_r(args.environment_arg[i], delim, &value);
+                key = strtok_r(args.env_arg[i], delim, &value);
                 if (key == NULL || value == NULL)
                         continue;
                 r = setenv(key, value, 1);
@@ -183,59 +185,49 @@ static int run_program(const char *arg)
 
         FILE *fp;
 
-        r = asprintf(&buf, "%c", '\0');
-        if (r == -1) {
-                perror("run_program buf");
-                exit(EXIT_FAILURE);
-        }
+        buf = calloc(1, sizeof(char));
+        if (buf == NULL)
+                return 1;
 
         if (arg == NULL) {
                 path = args.program_arg;
         } else {
                 r = asprintf(&path, "%s %s", args.program_arg, arg);
-                if (r == -1) {
-                        perror("run_program asprintf");
-                        exit(EXIT_FAILURE);
-                }
+                if (r == -1)
+                        return 1;
         }
 
         fp = popen(path, "r");
 
-        if (fp == NULL) {
-                perror("popen");
-                exit(EXIT_FAILURE);
-        }
+        if (fp == NULL)
+                return 1;
 
         while (fgets(line, PATH_MAX, fp) != NULL) {
                 tmp = buf;
                 r = asprintf(&buf, "%s%s", buf, line);
-                if (r == -1) {
-                        perror("fgets asprintf");
-                        exit(EXIT_FAILURE);
-                }
+                if (r == -1)
+                        return 1;
+
                 free(tmp);
+                tmp = NULL;
         }
 
         r = pclose(fp);
-        if (r == -1) {
-                perror("run_program pclose");
-                exit(EXIT_FAILURE);
-        }
+        if (r == -1)
+                return 1;
 
         r = WEXITSTATUS(r);
 
         if (r != 0 && !args.force_flag) {
                 free(buf);
-                return r;
+                return 1;
         }
 
         r = asprintf(&template_buffer, "%s%s", template_buffer, buf);
-        if (r == -1) {
-                perror("run_program template_buffer");
-                exit(EXIT_FAILURE);
-        }
+
         free(buf);
-        return 0;
+
+        return r == -1 ? 1 : 0;
 }
 
 static int write_mkstemp()
@@ -244,33 +236,26 @@ static int write_mkstemp()
         size_t size;
 
         mkstemp_template = strdup(args.mkstemp_template_arg);
-        if (mkstemp_template == NULL) {
-                perror("mkstemp_template");
-                exit(EXIT_FAILURE);
-        }
+        if (mkstemp_template == NULL)
+                return 1;
 
         fd = mkstemp(mkstemp_template);
-        if (fd == -1) {
-                perror("mkstemp");
-                exit(EXIT_FAILURE);
-        }
+        if (fd == -1)
+                return 1;
 
         size = strlen(template_buffer);
         r = write(fd, template_buffer, size);
-        if (r != size) {
-                perror("write");
-                exit(EXIT_FAILURE);
-        }
+        if (r != size)
+                return 1;
+
         r = fchmod(fd, 0400);
-        if (r == -1) {
-                perror("fchmod");
-                exit(EXIT_FAILURE);
-        }
+        if (r == -1)
+                return 1;
+
         r = close(fd);
-        if (r != 0) {
-                perror("close");
-                exit(EXIT_FAILURE);
-        }
+        if (r != 0)
+                return 1;
+
         return 0;
 }
 
@@ -363,24 +348,19 @@ static int run_command()
 
                 run_command_child();
         } else if (pid < 0) {
-                perror("fork");
-                exit(EXIT_FAILURE);
+                return 1;
         } else {
 
                 if (args.stdout_given) {
                         redir_stdout = fopen(args.stdout_arg, "w");
-                        if (redir_stdout == NULL) {
-                                perror("redir_stdout");
-                                exit(EXIT_FAILURE);
-                        }
+                        if (redir_stdout == NULL)
+                                return 1;
                 }
 
                 if (args.stderr_given) {
                         redir_stderr = fopen(args.stderr_arg, "w");
-                        if (redir_stderr == NULL) {
-                                perror("redir_stderr");
-                                exit(EXIT_FAILURE);
-                        }
+                        if (redir_stderr == NULL)
+                                return 1;
                 }
 
                 close(stdin_pipe[0]);
@@ -388,22 +368,16 @@ static int run_command()
                 close(stderr_pipe[1]);
 
                 cstdin = fdopen(stdin_pipe[1], "w");
-                if (cstdin == NULL) {
-                       perror("cstdin");
-                       exit(EXIT_FAILURE);
-                }
+                if (cstdin == NULL)
+                        return 1;
 
                 cstdout = fdopen(stdout_pipe[0], "r");
-                if (cstdout == NULL) {
-                        perror("cstdout");
-                        exit(EXIT_FAILURE);
-                }
+                if (cstdout == NULL)
+                        return 1;
 
                 cstderr = fdopen(stderr_pipe[0], "r");
-                if (cstderr == NULL) {
-                        perror("cstderr");
-                        exit(EXIT_FAILURE);
-                }
+                if (cstderr == NULL)
+                        return 1;
 
                 int do_read = 1;
                 int od = 0;
@@ -447,9 +421,12 @@ static int run_command()
                 if (redir_stderr != stderr)
                         fclose(redir_stderr);
 
-                if (WIFEXITED(status))
-                        return WEXITSTATUS(status);
+                if (! WIFEXITED(status))
+                        return 1;
+
+                run_command_exit_code = WEXITSTATUS(status);
+                return 9;
         }
 
-        return -1; // this should never be reached
+        return 1; // this should never be reached
 }

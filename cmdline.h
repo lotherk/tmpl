@@ -45,11 +45,11 @@ struct gengetopt_args_info
   char * mkstemp_template_arg;	/**< @brief Set mkstemp(3) template. (default='/tmp/.tmpl-XXXXXXXXXX').  */
   char * mkstemp_template_orig;	/**< @brief Set mkstemp(3) template. original value given at command line.  */
   const char *mkstemp_template_help; /**< @brief Set mkstemp(3) template. help description.  */
-  char ** environment_arg;	/**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND.  */
-  char ** environment_orig;	/**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND original value given at command line.  */
-  unsigned int environment_min; /**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND's minimum occurreces */
-  unsigned int environment_max; /**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND's maximum occurreces */
-  const char *environment_help; /**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND help description.  */
+  char ** env_arg;	/**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND.  */
+  char ** env_orig;	/**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND original value given at command line.  */
+  unsigned int env_min; /**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND's minimum occurreces */
+  unsigned int env_max; /**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND's maximum occurreces */
+  const char *env_help; /**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND help description.  */
   float delete_arg;	/**< @brief Spawns new process which deletes mkstemp(3) file after N seconds..  */
   char * delete_orig;	/**< @brief Spawns new process which deletes mkstemp(3) file after N seconds. original value given at command line.  */
   const char *delete_help; /**< @brief Spawns new process which deletes mkstemp(3) file after N seconds. help description.  */
@@ -75,7 +75,7 @@ struct gengetopt_args_info
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int force_given ;	/**< @brief Whether force was given.  */
   unsigned int mkstemp_template_given ;	/**< @brief Whether mkstemp-template was given.  */
-  unsigned int environment_given ;	/**< @brief Whether environment was given.  */
+  unsigned int env_given ;	/**< @brief Whether env was given.  */
   unsigned int delete_given ;	/**< @brief Whether delete was given.  */
   unsigned int program_given ;	/**< @brief Whether program was given.  */
   unsigned int cat_given ;	/**< @brief Whether cat was given.  */
