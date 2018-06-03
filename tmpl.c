@@ -41,17 +41,11 @@
 #include <fcntl.h>
 
 #include "cmdline.h"
-#include "log.h"
 
 static char *mkstemp_template, *template_buffer;
 static struct gengetopt_args_info args;
-static struct logger logger;
-static FILE *log_file;
 
 static int arg_init(int argc, char **argv);
-static void logger_setup();
-static void logger_destroy();
-static void print_log(const char *msg);
 static int tmpl_quit(int code);
 static void tmpl_setenv();
 static void tmpl_atexit();
@@ -65,7 +59,6 @@ int main(int argc, char **argv)
         pid_t pid;
 
         mkstemp_template = NULL;
-        log_file = NULL;
 
         if ((r = arg_init(argc, argv)) != 0)
                 exit(EXIT_FAILURE);
@@ -81,8 +74,6 @@ int main(int argc, char **argv)
         }
 
         tmpl_setenv();
-
-        logger_setup();
 
         r = asprintf(&template_buffer, "%c", '\0');
         if (r == -1) {
@@ -158,59 +149,6 @@ static int arg_init(int argc, char **argv)
         return 0;
 }
 
-
-static void logger_destroy()
-{
-        int r;
-        fflush(log_file);
-        r = fclose(log_file);
-        r = log_free(&logger);
-}
-static void logger_setup()
-{
-        int r, i;
-        if ((r = log_init(&logger)) != 0) {
-                perror("log_init");
-                exit(EXIT_FAILURE);
-        }
-
-        logger.progname = "core";
-
-        if (args.verbose_arg > 0) {
-                int level = 1;
-                for (i = 1; i < args.verbose_arg; i++)
-                        level += level;
-                logger.level = level;
-        }
-
-        if (args.log_file_given) {
-                log_file = fopen(args.log_file_arg, "a");
-                if (log_file == NULL) {
-                        perror("open log file");
-                        exit(EXIT_FAILURE);
-                }
-        } else {
-                log_file = stderr;
-        }
-
-        if ((r = log_appender(&logger, print_log)) != 0) {
-                perror("log_appender");
-                exit(EXIT_FAILURE);
-        }
-
-        LOG_INFO(&logger, "log started");
-}
-
-static void print_log(const char *msg) {
-        int r;
-        r = fprintf(log_file, "%s\n", msg);
-        if (r < 0) {
-                perror("print_log");
-                exit(EXIT_FAILURE);
-        }
-        fflush(log_file);
-}
-
 static void tmpl_setenv()
 {
         int i, r;
@@ -229,7 +167,6 @@ static void tmpl_atexit()
 }
 static int tmpl_quit(int code)
 {
-        logger_destroy();
         free(template_buffer);
         free(mkstemp_template);
         return code;
@@ -259,7 +196,6 @@ static int run_program(const char *arg)
                 }
         }
 
-        LOG_DEBUG(&logger, "Running cmd: '%s'", path);
         fp = popen(path, "r");
 
         if (fp == NULL) {

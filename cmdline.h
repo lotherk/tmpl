@@ -40,14 +40,6 @@ struct gengetopt_args_info
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *detailed_help_help; /**< @brief Print help, including all details and hidden options, and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  int log_flag;	/**< @brief Enable logging (default=off).  */
-  const char *log_help; /**< @brief Enable logging help description.  */
-  char * log_file_arg;	/**< @brief Write logs to FILE (default='/dev/stderr').  */
-  char * log_file_orig;	/**< @brief Write logs to FILE original value given at command line.  */
-  const char *log_file_help; /**< @brief Write logs to FILE help description.  */
-  int verbose_arg;	/**< @brief Be more verbose. Can be specified multiple times to a maximum of 7.  */
-  char * verbose_orig;	/**< @brief Be more verbose. Can be specified multiple times to a maximum of 7 original value given at command line.  */
-  const char *verbose_help; /**< @brief Be more verbose. Can be specified multiple times to a maximum of 7 help description.  */
   int force_flag;	/**< @brief Force output generation even if PROGRAM fails on a template. Use with caution! (default=off).  */
   const char *force_help; /**< @brief Force output generation even if PROGRAM fails on a template. Use with caution! help description.  */
   int cat_flag;	/**< @brief Print buffer to STDOUT (does not write mkstemp(3) file) (default=off).  */
@@ -81,9 +73,6 @@ struct gengetopt_args_info
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int detailed_help_given ;	/**< @brief Whether detailed-help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
-  unsigned int log_given ;	/**< @brief Whether log was given.  */
-  unsigned int log_file_given ;	/**< @brief Whether log-file was given.  */
-  unsigned int verbose_given ;	/**< @brief Whether verbose was given.  */
   unsigned int force_given ;	/**< @brief Whether force was given.  */
   unsigned int cat_given ;	/**< @brief Whether cat was given.  */
   unsigned int mkstemp_template_given ;	/**< @brief Whether mkstemp-template was given.  */

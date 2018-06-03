@@ -8,37 +8,6 @@ versiontext "This software is supplied WITHOUT ANY WARRANTY; without even the im
 
 text "\n"
 
-section "General"
-
-option "log" l "Enable logging"
-        flag off
-
-option "log-file" L "Write logs to FILE"
-        string typestr="FILE"
-        optional default="/dev/stderr"
-
-option "verbose" v "Be more verbose. Can be specified multiple times to a maximum of 7"
-        int optional
-        details="
-Occurances    Level
-1             Fatal
-2             Critical
-3             Error
-4             Warning
-5             Info
-6             Debug
-7             All
-
-Examples:
-
-log all Critical and thus also Fatal messages
-# tmpl -v 2 ...
-
-log all messages
-# tmpl -v 7 ...
-"
-
-
 option "force" f "Force output generation even if PROGRAM fails on a template. Use with caution!"
         flag off
         details="If PROGRAM fails on a template, no data (from that template)

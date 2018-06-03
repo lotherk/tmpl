@@ -37,12 +37,7 @@ const char *gengetopt_args_info_detailed_help[] = {
   "  -h, --help                    Print help and exit",
   "      --detailed-help           Print help, including all details and hidden\n                                  options, and exit",
   "  -V, --version                 Print version and exit",
-  "\nGeneral:",
   "\n",
-  "  -l, --log                     Enable logging  (default=off)",
-  "  -L, --log-file=FILE           Write logs to FILE  (default=`/dev/stderr')",
-  "  -v, --verbose=INT             Be more verbose. Can be specified multiple\n                                  times to a maximum of 7",
-  "  \n  Occurances    Level\n  1             Fatal\n  2             Critical\n  3             Error\n  4             Warning\n  5             Info\n  6             Debug\n  7             All\n\n  Examples:\n\n  log all Critical and thus also Fatal messages\n  # tmpl -v 2 ...\n\n  log all messages\n  # tmpl -v 7 ...\n",
   "  -f, --force                   Force output generation even if PROGRAM fails\n                                  on a template. Use with caution!\n                                  (default=off)",
   "  If PROGRAM fails on a template, no data (from that template)\n  will be added to the global buffer, instead of aborting. This might lead to\n  unwanted\n  behaviour if you use tmpl for config file generation.\n",
   "  -c, --cat                     Print buffer to STDOUT (does not write\n                                  mkstemp(3) file)  (default=off)",
@@ -69,30 +64,25 @@ init_help_array(void)
   gengetopt_args_info_help[2] = gengetopt_args_info_detailed_help[2];
   gengetopt_args_info_help[3] = gengetopt_args_info_detailed_help[3];
   gengetopt_args_info_help[4] = gengetopt_args_info_detailed_help[4];
-  gengetopt_args_info_help[5] = gengetopt_args_info_detailed_help[5];
-  gengetopt_args_info_help[6] = gengetopt_args_info_detailed_help[6];
-  gengetopt_args_info_help[7] = gengetopt_args_info_detailed_help[7];
-  gengetopt_args_info_help[8] = gengetopt_args_info_detailed_help[9];
+  gengetopt_args_info_help[5] = gengetopt_args_info_detailed_help[6];
+  gengetopt_args_info_help[6] = gengetopt_args_info_detailed_help[7];
+  gengetopt_args_info_help[7] = gengetopt_args_info_detailed_help[9];
+  gengetopt_args_info_help[8] = gengetopt_args_info_detailed_help[10];
   gengetopt_args_info_help[9] = gengetopt_args_info_detailed_help[11];
-  gengetopt_args_info_help[10] = gengetopt_args_info_detailed_help[12];
-  gengetopt_args_info_help[11] = gengetopt_args_info_detailed_help[14];
-  gengetopt_args_info_help[12] = gengetopt_args_info_detailed_help[15];
-  gengetopt_args_info_help[13] = gengetopt_args_info_detailed_help[16];
+  gengetopt_args_info_help[10] = gengetopt_args_info_detailed_help[13];
+  gengetopt_args_info_help[11] = gengetopt_args_info_detailed_help[15];
+  gengetopt_args_info_help[12] = gengetopt_args_info_detailed_help[16];
+  gengetopt_args_info_help[13] = gengetopt_args_info_detailed_help[17];
   gengetopt_args_info_help[14] = gengetopt_args_info_detailed_help[18];
-  gengetopt_args_info_help[15] = gengetopt_args_info_detailed_help[20];
-  gengetopt_args_info_help[16] = gengetopt_args_info_detailed_help[21];
-  gengetopt_args_info_help[17] = gengetopt_args_info_detailed_help[22];
-  gengetopt_args_info_help[18] = gengetopt_args_info_detailed_help[23];
-  gengetopt_args_info_help[19] = 0; 
+  gengetopt_args_info_help[15] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[20];
+const char *gengetopt_args_info_help[16];
 
 typedef enum {ARG_NO
   , ARG_FLAG
   , ARG_STRING
-  , ARG_INT
   , ARG_FLOAT
 } cmdline_parser_arg_type;
 
@@ -117,9 +107,6 @@ void clear_given (struct gengetopt_args_info *args_info)
   args_info->help_given = 0 ;
   args_info->detailed_help_given = 0 ;
   args_info->version_given = 0 ;
-  args_info->log_given = 0 ;
-  args_info->log_file_given = 0 ;
-  args_info->verbose_given = 0 ;
   args_info->force_given = 0 ;
   args_info->cat_given = 0 ;
   args_info->mkstemp_template_given = 0 ;
@@ -136,10 +123,6 @@ static
 void clear_args (struct gengetopt_args_info *args_info)
 {
   FIX_UNUSED (args_info);
-  args_info->log_flag = 0;
-  args_info->log_file_arg = gengetopt_strdup ("/dev/stderr");
-  args_info->log_file_orig = NULL;
-  args_info->verbose_orig = NULL;
   args_info->force_flag = 0;
   args_info->cat_flag = 0;
   args_info->mkstemp_template_arg = gengetopt_strdup ("/tmp/.tmpl-XXXXXXXXXX");
@@ -167,21 +150,18 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->help_help = gengetopt_args_info_detailed_help[0] ;
   args_info->detailed_help_help = gengetopt_args_info_detailed_help[1] ;
   args_info->version_help = gengetopt_args_info_detailed_help[2] ;
-  args_info->log_help = gengetopt_args_info_detailed_help[5] ;
-  args_info->log_file_help = gengetopt_args_info_detailed_help[6] ;
-  args_info->verbose_help = gengetopt_args_info_detailed_help[7] ;
-  args_info->force_help = gengetopt_args_info_detailed_help[9] ;
-  args_info->cat_help = gengetopt_args_info_detailed_help[11] ;
-  args_info->mkstemp_template_help = gengetopt_args_info_detailed_help[12] ;
-  args_info->environment_help = gengetopt_args_info_detailed_help[14] ;
+  args_info->force_help = gengetopt_args_info_detailed_help[4] ;
+  args_info->cat_help = gengetopt_args_info_detailed_help[6] ;
+  args_info->mkstemp_template_help = gengetopt_args_info_detailed_help[7] ;
+  args_info->environment_help = gengetopt_args_info_detailed_help[9] ;
   args_info->environment_min = 0;
   args_info->environment_max = 0;
-  args_info->delete_help = gengetopt_args_info_detailed_help[15] ;
-  args_info->program_help = gengetopt_args_info_detailed_help[16] ;
-  args_info->run_help = gengetopt_args_info_detailed_help[18] ;
-  args_info->background_help = gengetopt_args_info_detailed_help[20] ;
-  args_info->stdout_help = gengetopt_args_info_detailed_help[21] ;
-  args_info->stderr_help = gengetopt_args_info_detailed_help[22] ;
+  args_info->delete_help = gengetopt_args_info_detailed_help[10] ;
+  args_info->program_help = gengetopt_args_info_detailed_help[11] ;
+  args_info->run_help = gengetopt_args_info_detailed_help[13] ;
+  args_info->background_help = gengetopt_args_info_detailed_help[15] ;
+  args_info->stdout_help = gengetopt_args_info_detailed_help[16] ;
+  args_info->stderr_help = gengetopt_args_info_detailed_help[17] ;
   
 }
 
@@ -274,7 +254,6 @@ free_string_field (char **s)
 
 /** @brief generic value variable */
 union generic_value {
-    int int_arg;
     float float_arg;
     char *string_arg;
     const char *default_string_arg;
@@ -323,9 +302,6 @@ static void
 cmdline_parser_release (struct gengetopt_args_info *args_info)
 {
   unsigned int i;
-  free_string_field (&(args_info->log_file_arg));
-  free_string_field (&(args_info->log_file_orig));
-  free_string_field (&(args_info->verbose_orig));
   free_string_field (&(args_info->mkstemp_template_arg));
   free_string_field (&(args_info->mkstemp_template_orig));
   free_multiple_string_field (args_info->environment_given, &(args_info->environment_arg), &(args_info->environment_orig));
@@ -387,12 +363,6 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "detailed-help", 0, 0 );
   if (args_info->version_given)
     write_into_file(outfile, "version", 0, 0 );
-  if (args_info->log_given)
-    write_into_file(outfile, "log", 0, 0 );
-  if (args_info->log_file_given)
-    write_into_file(outfile, "log-file", args_info->log_file_orig, 0);
-  if (args_info->verbose_given)
-    write_into_file(outfile, "verbose", args_info->verbose_orig, 0);
   if (args_info->force_given)
     write_into_file(outfile, "force", 0, 0 );
   if (args_info->cat_given)
@@ -756,9 +726,6 @@ int update_arg(void *field, char **orig_field,
   case ARG_FLAG:
     *((int *)field) = !*((int *)field);
     break;
-  case ARG_INT:
-    if (val) *((int *)field) = strtol (val, &stop_char, 0);
-    break;
   case ARG_FLOAT:
     if (val) *((float *)field) = (float)strtod (val, &stop_char);
     break;
@@ -776,7 +743,6 @@ int update_arg(void *field, char **orig_field,
 
   /* check numeric conversion */
   switch(arg_type) {
-  case ARG_INT:
   case ARG_FLOAT:
     if (val && !(stop_char && *stop_char == '\0')) {
       fprintf(stderr, "%s: invalid numeric value: %s\n", package_name, val);
@@ -890,8 +856,6 @@ void update_multiple_arg(void *field, char ***orig_field,
     *orig_field = (char **) realloc (*orig_field, (field_given + prev_given) * sizeof (char *));
 
     switch(arg_type) {
-    case ARG_INT:
-      *((int **)field) = (int *)realloc (*((int **)field), (field_given + prev_given) * sizeof (int)); break;
     case ARG_FLOAT:
       *((float **)field) = (float *)realloc (*((float **)field), (field_given + prev_given) * sizeof (float)); break;
     case ARG_STRING:
@@ -905,8 +869,6 @@ void update_multiple_arg(void *field, char ***orig_field,
         tmp = list;
         
         switch(arg_type) {
-        case ARG_INT:
-          (*((int **)field))[i + field_given] = tmp->arg.int_arg; break;
         case ARG_FLOAT:
           (*((float **)field))[i + field_given] = tmp->arg.float_arg; break;
         case ARG_STRING:
@@ -921,12 +883,6 @@ void update_multiple_arg(void *field, char ***orig_field,
   } else { /* set the default value */
     if (default_value && ! field_given) {
       switch(arg_type) {
-      case ARG_INT:
-        if (! *((int **)field)) {
-          *((int **)field) = (int *)malloc (sizeof (int));
-          (*((int **)field))[0] = default_value->int_arg; 
-        }
-        break;
       case ARG_FLOAT:
         if (! *((float **)field)) {
           *((float **)field) = (float *)malloc (sizeof (float));
@@ -990,9 +946,6 @@ cmdline_parser_internal (
         { "help",	0, NULL, 'h' },
         { "detailed-help",	0, NULL, 0 },
         { "version",	0, NULL, 'V' },
-        { "log",	0, NULL, 'l' },
-        { "log-file",	1, NULL, 'L' },
-        { "verbose",	1, NULL, 'v' },
         { "force",	0, NULL, 'f' },
         { "cat",	0, NULL, 'c' },
         { "mkstemp-template",	1, NULL, 'T' },
@@ -1006,7 +959,7 @@ cmdline_parser_internal (
         { 0,  0, 0, 0 }
       };
 
-      c = getopt_long (argc, argv, "hVlL:v:fcT:e:d:p:r:B", long_options, &option_index);
+      c = getopt_long (argc, argv, "hVfcT:e:d:p:r:B", long_options, &option_index);
 
       if (c == -1) break;	/* Exit from `while (1)' loop.  */
 
@@ -1022,40 +975,6 @@ cmdline_parser_internal (
           cmdline_parser_free (&local_args_info);
           exit (EXIT_SUCCESS);
 
-        case 'l':	/* Enable logging.  */
-        
-        
-          if (update_arg((void *)&(args_info->log_flag), 0, &(args_info->log_given),
-              &(local_args_info.log_given), optarg, 0, 0, ARG_FLAG,
-              check_ambiguity, override, 1, 0, "log", 'l',
-              additional_error))
-            goto failure;
-        
-          break;
-        case 'L':	/* Write logs to FILE.  */
-        
-        
-          if (update_arg( (void *)&(args_info->log_file_arg), 
-               &(args_info->log_file_orig), &(args_info->log_file_given),
-              &(local_args_info.log_file_given), optarg, 0, "/dev/stderr", ARG_STRING,
-              check_ambiguity, override, 0, 0,
-              "log-file", 'L',
-              additional_error))
-            goto failure;
-        
-          break;
-        case 'v':	/* Be more verbose. Can be specified multiple times to a maximum of 7.  */
-        
-        
-          if (update_arg( (void *)&(args_info->verbose_arg), 
-               &(args_info->verbose_orig), &(args_info->verbose_given),
-              &(local_args_info.verbose_given), optarg, 0, 0, ARG_INT,
-              check_ambiguity, override, 0, 0,
-              "verbose", 'v',
-              additional_error))
-            goto failure;
-        
-          break;
         case 'f':	/* Force output generation even if PROGRAM fails on a template. Use with caution!.  */
         
         

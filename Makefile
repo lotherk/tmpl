@@ -9,11 +9,11 @@ cmdline:
 	gengetopt -u -i tmpl.ggo
 
 program:
-	cc -g -o tmpl tmpl.c log.c cmdline.c
+	cc -g -o tmpl tmpl.c cmdline.c
 readme.md: all
 	./tmpl -c -p "erb -T-" ./README.md.erb > README.md
 static:
-	cc -g -o tmpl-static -static tmpl.c log.c cmdline.c
+	cc -g -o tmpl-static -static tmpl.c cmdline.c
 
 clean:
 	-rm -f tmpl
