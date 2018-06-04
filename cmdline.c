@@ -36,6 +36,7 @@ const char *gengetopt_args_info_description = "";
 const char *gengetopt_args_info_detailed_help[] = {
   "  -h, --help                    Print help and exit",
   "      --detailed-help           Print help, including all details and hidden\n                                  options, and exit",
+  "      --full-help               Print help, including hidden options, and exit",
   "  -V, --version                 Print version and exit",
   "\n",
   "  -f, --force                   Force output generation  (default=off)",
@@ -56,6 +57,32 @@ const char *gengetopt_args_info_detailed_help[] = {
   "\nSee tmpl(1) for more informations and examples.",
     0
 };
+static void
+init_full_help_array(void)
+{
+  gengetopt_args_info_full_help[0] = gengetopt_args_info_detailed_help[0];
+  gengetopt_args_info_full_help[1] = gengetopt_args_info_detailed_help[1];
+  gengetopt_args_info_full_help[2] = gengetopt_args_info_detailed_help[2];
+  gengetopt_args_info_full_help[3] = gengetopt_args_info_detailed_help[3];
+  gengetopt_args_info_full_help[4] = gengetopt_args_info_detailed_help[4];
+  gengetopt_args_info_full_help[5] = gengetopt_args_info_detailed_help[5];
+  gengetopt_args_info_full_help[6] = gengetopt_args_info_detailed_help[6];
+  gengetopt_args_info_full_help[7] = gengetopt_args_info_detailed_help[8];
+  gengetopt_args_info_full_help[8] = gengetopt_args_info_detailed_help[9];
+  gengetopt_args_info_full_help[9] = gengetopt_args_info_detailed_help[10];
+  gengetopt_args_info_full_help[10] = gengetopt_args_info_detailed_help[12];
+  gengetopt_args_info_full_help[11] = gengetopt_args_info_detailed_help[13];
+  gengetopt_args_info_full_help[12] = gengetopt_args_info_detailed_help[14];
+  gengetopt_args_info_full_help[13] = gengetopt_args_info_detailed_help[15];
+  gengetopt_args_info_full_help[14] = gengetopt_args_info_detailed_help[17];
+  gengetopt_args_info_full_help[15] = gengetopt_args_info_detailed_help[18];
+  gengetopt_args_info_full_help[16] = gengetopt_args_info_detailed_help[19];
+  gengetopt_args_info_full_help[17] = gengetopt_args_info_detailed_help[20];
+  gengetopt_args_info_full_help[18] = 0; 
+  
+}
+
+const char *gengetopt_args_info_full_help[19];
 
 static void
 init_help_array(void)
@@ -66,17 +93,17 @@ init_help_array(void)
   gengetopt_args_info_help[3] = gengetopt_args_info_detailed_help[3];
   gengetopt_args_info_help[4] = gengetopt_args_info_detailed_help[4];
   gengetopt_args_info_help[5] = gengetopt_args_info_detailed_help[5];
-  gengetopt_args_info_help[6] = gengetopt_args_info_detailed_help[7];
-  gengetopt_args_info_help[7] = gengetopt_args_info_detailed_help[8];
-  gengetopt_args_info_help[8] = gengetopt_args_info_detailed_help[9];
-  gengetopt_args_info_help[9] = gengetopt_args_info_detailed_help[11];
-  gengetopt_args_info_help[10] = gengetopt_args_info_detailed_help[12];
-  gengetopt_args_info_help[11] = gengetopt_args_info_detailed_help[13];
-  gengetopt_args_info_help[12] = gengetopt_args_info_detailed_help[14];
-  gengetopt_args_info_help[13] = gengetopt_args_info_detailed_help[16];
-  gengetopt_args_info_help[14] = gengetopt_args_info_detailed_help[17];
-  gengetopt_args_info_help[15] = gengetopt_args_info_detailed_help[18];
-  gengetopt_args_info_help[16] = gengetopt_args_info_detailed_help[19];
+  gengetopt_args_info_help[6] = gengetopt_args_info_detailed_help[8];
+  gengetopt_args_info_help[7] = gengetopt_args_info_detailed_help[9];
+  gengetopt_args_info_help[8] = gengetopt_args_info_detailed_help[10];
+  gengetopt_args_info_help[9] = gengetopt_args_info_detailed_help[12];
+  gengetopt_args_info_help[10] = gengetopt_args_info_detailed_help[13];
+  gengetopt_args_info_help[11] = gengetopt_args_info_detailed_help[14];
+  gengetopt_args_info_help[12] = gengetopt_args_info_detailed_help[15];
+  gengetopt_args_info_help[13] = gengetopt_args_info_detailed_help[17];
+  gengetopt_args_info_help[14] = gengetopt_args_info_detailed_help[18];
+  gengetopt_args_info_help[15] = gengetopt_args_info_detailed_help[19];
+  gengetopt_args_info_help[16] = gengetopt_args_info_detailed_help[20];
   gengetopt_args_info_help[17] = 0; 
   
 }
@@ -109,6 +136,7 @@ void clear_given (struct gengetopt_args_info *args_info)
 {
   args_info->help_given = 0 ;
   args_info->detailed_help_given = 0 ;
+  args_info->full_help_given = 0 ;
   args_info->version_given = 0 ;
   args_info->force_given = 0 ;
   args_info->mkstemp_template_given = 0 ;
@@ -148,23 +176,24 @@ void clear_args (struct gengetopt_args_info *args_info)
 static
 void init_args_info(struct gengetopt_args_info *args_info)
 {
-
+  init_full_help_array(); 
   init_help_array(); 
   args_info->help_help = gengetopt_args_info_detailed_help[0] ;
   args_info->detailed_help_help = gengetopt_args_info_detailed_help[1] ;
-  args_info->version_help = gengetopt_args_info_detailed_help[2] ;
-  args_info->force_help = gengetopt_args_info_detailed_help[4] ;
-  args_info->mkstemp_template_help = gengetopt_args_info_detailed_help[5] ;
-  args_info->env_help = gengetopt_args_info_detailed_help[7] ;
+  args_info->full_help_help = gengetopt_args_info_detailed_help[2] ;
+  args_info->version_help = gengetopt_args_info_detailed_help[3] ;
+  args_info->force_help = gengetopt_args_info_detailed_help[5] ;
+  args_info->mkstemp_template_help = gengetopt_args_info_detailed_help[6] ;
+  args_info->env_help = gengetopt_args_info_detailed_help[8] ;
   args_info->env_min = 0;
   args_info->env_max = 0;
-  args_info->delete_help = gengetopt_args_info_detailed_help[8] ;
-  args_info->program_help = gengetopt_args_info_detailed_help[9] ;
-  args_info->cat_help = gengetopt_args_info_detailed_help[12] ;
-  args_info->run_help = gengetopt_args_info_detailed_help[14] ;
-  args_info->background_help = gengetopt_args_info_detailed_help[16] ;
-  args_info->stdout_help = gengetopt_args_info_detailed_help[17] ;
-  args_info->stderr_help = gengetopt_args_info_detailed_help[18] ;
+  args_info->delete_help = gengetopt_args_info_detailed_help[9] ;
+  args_info->program_help = gengetopt_args_info_detailed_help[10] ;
+  args_info->cat_help = gengetopt_args_info_detailed_help[13] ;
+  args_info->run_help = gengetopt_args_info_detailed_help[15] ;
+  args_info->background_help = gengetopt_args_info_detailed_help[17] ;
+  args_info->stdout_help = gengetopt_args_info_detailed_help[18] ;
+  args_info->stderr_help = gengetopt_args_info_detailed_help[19] ;
   
 }
 
@@ -201,6 +230,15 @@ cmdline_parser_print_help (void)
   print_help_common();
   while (gengetopt_args_info_help[i])
     printf("%s\n", gengetopt_args_info_help[i++]);
+}
+
+void
+cmdline_parser_print_full_help (void)
+{
+  int i = 0;
+  print_help_common();
+  while (gengetopt_args_info_full_help[i])
+    printf("%s\n", gengetopt_args_info_full_help[i++]);
 }
 
 void
@@ -364,6 +402,8 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
     write_into_file(outfile, "help", 0, 0 );
   if (args_info->detailed_help_given)
     write_into_file(outfile, "detailed-help", 0, 0 );
+  if (args_info->full_help_given)
+    write_into_file(outfile, "full-help", 0, 0 );
   if (args_info->version_given)
     write_into_file(outfile, "version", 0, 0 );
   if (args_info->force_given)
@@ -933,6 +973,7 @@ cmdline_parser_internal (
       static struct option long_options[] = {
         { "help",	0, NULL, 'h' },
         { "detailed-help",	0, NULL, 0 },
+        { "full-help",	0, NULL, 0 },
         { "version",	0, NULL, 'V' },
         { "force",	0, NULL, 'f' },
         { "mkstemp-template",	1, NULL, 'T' },
@@ -1054,6 +1095,12 @@ cmdline_parser_internal (
         case 0:	/* Long option with no short option */
           if (strcmp (long_options[option_index].name, "detailed-help") == 0) {
             cmdline_parser_print_detailed_help ();
+            cmdline_parser_free (&local_args_info);
+            exit (EXIT_SUCCESS);
+          }
+
+          if (strcmp (long_options[option_index].name, "full-help") == 0) {
+            cmdline_parser_print_full_help ();
             cmdline_parser_free (&local_args_info);
             exit (EXIT_SUCCESS);
           }
