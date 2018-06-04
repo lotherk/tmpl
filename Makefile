@@ -18,8 +18,8 @@ program:
 readme.md: all
 	./tmpl -c -p "erb -T-" ./README.md.erb > README.md
 static:
-	${C} -g -o tmpl-static-${UNAME_S}-${UNAME_M} -static tmpl.c cmdline.c
-
+	${C} -o tmpl-static-${UNAME_S}-${UNAME_M} -static tmpl.c cmdline.c
+	strip --strip-all tmpl-static-${UNAME_S}-${UNAME_M}
 clean:
 	-rm -f tmpl
 	-rm -f tmpl-static-${UNAME_S}-${UNAME_M}
@@ -27,6 +27,7 @@ clean:
 install:
 	install -d ${PREFIX}/bin
 	install -m 755 tmpl ${PREFIX}/bin/
+	strip --strip-all ${PREFIX}/bin/tmpl
 	install -m 644 tmpl.1  ${MANDIR}/
 
 deinstall:
