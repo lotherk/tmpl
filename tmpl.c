@@ -280,6 +280,9 @@ static int write_mkstemp()
     if (fd == -1)
         return 1;
 
+    if ((r = fchmod(fd, 0600)) == -1)
+        return 1;
+
     size = strlen(template_buffer);
     if ((r = write(fd, template_buffer, size)) != size)
         return 1;
