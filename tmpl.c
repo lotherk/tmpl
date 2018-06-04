@@ -192,6 +192,7 @@ static void atexit_hook()
 
     if (mkstemp_template != NULL)
         free(mkstemp_template);
+
 }
 
 static int run_program(const char *arg)
@@ -201,35 +202,52 @@ static int run_program(const char *arg)
     char line[PATH_MAX];
     FILE *fp;
 
+
     buf = calloc(1, sizeof(char));
-    if (buf == NULL)
+    if (buf == NULL) {
         return 1;
+    }
 
     if (arg == NULL) {
-        path = args.program_arg;
+        path = strdup(args.program_arg);
     } else {
+        path = calloc(1, sizeof(char));
+        if (path == NULL) {
+            free(buf);
+            return 1;
+        }
+
         tmp = path;
         r = asprintf(&path, "%s %s", args.program_arg, arg);
         free(tmp);
 
-        if (r == -1)
+        if (r == -1) {
+            free(buf);
+            free(path);
             return 1;
+        }
     }
 
     fp = popen(path, "r");
-    if (fp == NULL)
+    if (fp == NULL) {
+        free(buf);
+        free(path);
         return 1;
+    }
 
     while (fgets(line, PATH_MAX, fp) != NULL) {
         tmp = buf;
         r = asprintf(&buf, "%s%s", buf, line);
         free(tmp);
 
-        if (r == -1)
+        if (r == -1) {
+            free(path);
             return 1;
+        }
     }
 
     r = pclose(fp);
+    free(path);
     if (r == -1)
         return 1;
 
@@ -368,14 +386,21 @@ static int run_command()
         if (args.stdout_given)
             redir_stdout = fopen(args.stdout_arg, "w");
 
-        if (redir_stdout == NULL)
-                return 1;
+        if (redir_stdout == NULL) {
+            return 1;
+        }
 
-        if (args.stderr_given)
+        if (args.stderr_given) {
             redir_stderr = fopen(args.stderr_arg, "w");
 
-        if (redir_stderr == NULL)
-            return 1;
+            if (redir_stderr == NULL) {
+                if (redir_stdout != stdout)
+                    fclose(redir_stdout);
+                return 1;
+            }
+        } else {
+            redir_stderr = redir_stdout;
+        }
 
         close(stdin_pipe[0]);
         close(stdout_pipe[1]);
@@ -431,6 +456,5 @@ static int run_command()
         return 0;
     }
 
-    perror("run_command");
     return 1; // this should never be reached
 }
