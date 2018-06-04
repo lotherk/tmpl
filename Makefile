@@ -2,6 +2,8 @@ PREFIX := /usr/local
 CFLAGS := -g
 MANDIR := ${PREFIX}/man/man1/
 C := cc
+UNAME_S = `uname -s`
+UNAME_M = `uname -m`
 
 default: all
 
@@ -16,11 +18,11 @@ program:
 readme.md: all
 	./tmpl -c -p "erb -T-" ./README.md.erb > README.md
 static:
-	${C} -g -o tmpl-static -static tmpl.c cmdline.c
+	${C} -g -o tmpl-static-${UNAME_S}-${UNAME_M} -static tmpl.c cmdline.c
 
 clean:
 	-rm -f tmpl
-	-rm -f tmpl-static
+	-rm -f tmpl-static-${UNAME_S}-${UNAME_M}
 
 install:
 	install -d ${PREFIX}/bin

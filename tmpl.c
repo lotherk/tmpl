@@ -39,7 +39,6 @@
 #include "cmdline.h"
 
 #ifdef __OpenBSD__
-
 #ifndef HAVE_PLEDGE
 #define HAVE_PLEDGE
 #endif
@@ -75,6 +74,7 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 #endif
+    atexit(atexit_hook);
 
     if ((r = arg_init(argc, argv)) != 0)
         exit(EXIT_FAILURE);
