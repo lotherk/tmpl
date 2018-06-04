@@ -39,6 +39,11 @@
 #include "cmdline.h"
 
 #ifdef __OpenBSD__
+
+#ifndef HAVE_PLEDGE
+#define HAVE_PLEDGE
+#endif
+
 #include <sys/filio.h>
 #endif
 
@@ -63,6 +68,13 @@ int main(int argc, char **argv)
     template_buffer = NULL;
 
     run_command_exit_code = 0;
+
+#ifdef HAVE_PLEDGE
+    if (pledge("error stdio fattr proc exec tmppath", NULL) == -1) {
+        perror("pledge");
+        exit(EXIT_FAILURE);
+    }
+#endif
 
     if ((r = arg_init(argc, argv)) != 0)
         exit(EXIT_FAILURE);
@@ -138,6 +150,12 @@ int main(int argc, char **argv)
                 exit(EXIT_FAILURE);
             }
 
+#ifdef HAVE_PLEDGE
+            if (pledge("stdio tmppath", NULL) == -1) {
+                perror("pledge");
+                exit(EXIT_FAILURE);
+            }
+#endif
             sleep(args.delete_arg);
             r = unlink(mkstemp_template);
             exit(EXIT_SUCCESS);
@@ -267,14 +285,13 @@ static int run_program(const char *arg)
 
     free(buf);
 
-    return r == 0 ? 0 : 1;
+    return r != -1  ? 0 : 1;
 }
 
 static int write_mkstemp()
 {
     int fd, r;
     size_t size;
-
     mkstemp_template = strdup(args.mkstemp_template_arg);
     if (mkstemp_template == NULL)
         return 1;
