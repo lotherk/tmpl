@@ -34,10 +34,13 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
-#include <sys/filio.h>
 #include <limits.h>
 #include <unistd.h>
 #include "cmdline.h"
+
+#ifdef __OpenBSD__
+#include <sys/filio.h>
+#endif
 
 static char *mkstemp_template, *template_buffer;
 static struct gengetopt_args_info args;
