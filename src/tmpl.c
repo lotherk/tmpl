@@ -39,12 +39,10 @@
 #include "cmdline.h"
 
 #ifdef __OpenBSD__
-#ifndef HAVE_PLEDGE
-#define HAVE_PLEDGE
-#endif
-
 #include <sys/filio.h>
 #endif
+
+#include "config.h"
 
 static char *mkstemp_template, *template_buffer;
 static struct gengetopt_args_info args;
@@ -325,7 +323,7 @@ static void run_command_child()
     char *arguments[PATH_MAX];
     size_t arguments_i = 0;
     char abuf[PATH_MAX] = { '\0' };
-    size_t abuf_i;
+    size_t abuf_i = 0;
     int i;
 
     command = args.run_arg;
@@ -380,8 +378,8 @@ static int run_command()
     int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
     FILE *cstdin, *cstdout, *cstderr;
 
-    pid_t pid, wpid, bpid;
-    int status, r;
+    pid_t pid;
+    int status;
 
     FILE *redir_stdout = stdout;
     FILE *redir_stderr = stderr;
