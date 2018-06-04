@@ -446,11 +446,11 @@ static int run_command()
         fclose(cstdout);
         fclose(cstderr);
 
+        if (redir_stderr != stderr && redir_stderr != redir_stdout)
+            fclose(redir_stderr);
+
         if (redir_stdout != stdout)
             fclose(redir_stdout);
-
-        if (redir_stderr != stderr)
-            fclose(redir_stderr);
 
         if (! WIFEXITED(status))
             return 1;
