@@ -1,6 +1,7 @@
 PREFIX := /usr/local
 CFLAGS := -g
 MANDIR := ${PREFIX}/man/man1/
+C := cc
 
 default: all
 
@@ -11,11 +12,11 @@ cmdline:
 	gengetopt -u -i tmpl.ggo
 
 program:
-	cc -g -o tmpl tmpl.c cmdline.c
+	${C} ${CFLAGS} -o tmpl tmpl.c cmdline.c
 readme.md: all
 	./tmpl -c -p "erb -T-" ./README.md.erb > README.md
 static:
-	cc -g -o tmpl-static -static tmpl.c cmdline.c
+	${C} -g -o tmpl-static -static tmpl.c cmdline.c
 
 clean:
 	-rm -f tmpl

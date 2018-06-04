@@ -40,35 +40,35 @@ struct gengetopt_args_info
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *detailed_help_help; /**< @brief Print help, including all details and hidden options, and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  int force_flag;	/**< @brief Force output generation even if PROGRAM fails on a template. Use with caution! (default=off).  */
-  const char *force_help; /**< @brief Force output generation even if PROGRAM fails on a template. Use with caution! help description.  */
-  char * mkstemp_template_arg;	/**< @brief Set mkstemp(3) template. (default='/tmp/.tmpl-XXXXXXXXXX').  */
-  char * mkstemp_template_orig;	/**< @brief Set mkstemp(3) template. original value given at command line.  */
-  const char *mkstemp_template_help; /**< @brief Set mkstemp(3) template. help description.  */
-  char ** env_arg;	/**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND.  */
-  char ** env_orig;	/**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND original value given at command line.  */
-  unsigned int env_min; /**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND's minimum occurreces */
-  unsigned int env_max; /**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND's maximum occurreces */
-  const char *env_help; /**< @brief Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND help description.  */
-  float delete_arg;	/**< @brief Spawns new process which deletes mkstemp(3) file after N seconds..  */
-  char * delete_orig;	/**< @brief Spawns new process which deletes mkstemp(3) file after N seconds. original value given at command line.  */
-  const char *delete_help; /**< @brief Spawns new process which deletes mkstemp(3) file after N seconds. help description.  */
-  char * program_arg;	/**< @brief Pass templateN to PROGRAM. (default='/bin/sh').  */
-  char * program_orig;	/**< @brief Pass templateN to PROGRAM. original value given at command line.  */
-  const char *program_help; /**< @brief Pass templateN to PROGRAM. help description.  */
-  int cat_flag;	/**< @brief Print buffer to STDOUT (does not write mkstemp(3) file) (default=off).  */
-  const char *cat_help; /**< @brief Print buffer to STDOUT (does not write mkstemp(3) file) help description.  */
-  char * run_arg;	/**< @brief Run COMMAND and delete template afterwards..  */
-  char * run_orig;	/**< @brief Run COMMAND and delete template afterwards. original value given at command line.  */
-  const char *run_help; /**< @brief Run COMMAND and delete template afterwards. help description.  */
+  int force_flag;	/**< @brief Force output generation (default=off).  */
+  const char *force_help; /**< @brief Force output generation help description.  */
+  char * mkstemp_template_arg;	/**< @brief Set mkstemp(3) template (default='/tmp/.tmpl-XXXXXXXXXX').  */
+  char * mkstemp_template_orig;	/**< @brief Set mkstemp(3) template original value given at command line.  */
+  const char *mkstemp_template_help; /**< @brief Set mkstemp(3) template help description.  */
+  char ** env_arg;	/**< @brief Set environment variable KEY to VALUE prior to running PROGRAM or COMMAND.  */
+  char ** env_orig;	/**< @brief Set environment variable KEY to VALUE prior to running PROGRAM or COMMAND original value given at command line.  */
+  unsigned int env_min; /**< @brief Set environment variable KEY to VALUE prior to running PROGRAM or COMMAND's minimum occurreces */
+  unsigned int env_max; /**< @brief Set environment variable KEY to VALUE prior to running PROGRAM or COMMAND's maximum occurreces */
+  const char *env_help; /**< @brief Set environment variable KEY to VALUE prior to running PROGRAM or COMMAND help description.  */
+  float delete_arg;	/**< @brief Spawns new process which deletes temp file after SECONDS seconds.  */
+  char * delete_orig;	/**< @brief Spawns new process which deletes temp file after SECONDS seconds original value given at command line.  */
+  const char *delete_help; /**< @brief Spawns new process which deletes temp file after SECONDS seconds help description.  */
+  char * program_arg;	/**< @brief Run PROGRAM for each given FILE(S) (default='/bin/sh').  */
+  char * program_orig;	/**< @brief Run PROGRAM for each given FILE(S) original value given at command line.  */
+  const char *program_help; /**< @brief Run PROGRAM for each given FILE(S) help description.  */
+  int cat_flag;	/**< @brief Print buffer to STDOUT and exit (does not write temp file) (default=off).  */
+  const char *cat_help; /**< @brief Print buffer to STDOUT and exit (does not write temp file) help description.  */
+  char * run_arg;	/**< @brief Run COMMAND and delete temp file on exit.  */
+  char * run_orig;	/**< @brief Run COMMAND and delete temp file on exit original value given at command line.  */
+  const char *run_help; /**< @brief Run COMMAND and delete temp file on exit help description.  */
   int background_flag;	/**< @brief Fork to background when used with -r (default=off).  */
   const char *background_help; /**< @brief Fork to background when used with -r help description.  */
-  char * stdout_arg;	/**< @brief Redirect STDOUT from -r to FILE.  */
-  char * stdout_orig;	/**< @brief Redirect STDOUT from -r to FILE original value given at command line.  */
-  const char *stdout_help; /**< @brief Redirect STDOUT from -r to FILE help description.  */
-  char * stderr_arg;	/**< @brief Redirect STDERR from -r to FILE.  */
-  char * stderr_orig;	/**< @brief Redirect STDERR from -r to FILE original value given at command line.  */
-  const char *stderr_help; /**< @brief Redirect STDERR from -r to FILE help description.  */
+  char * stdout_arg;	/**< @brief Redirect STDOUT from COMMAND to FILE.  */
+  char * stdout_orig;	/**< @brief Redirect STDOUT from COMMAND to FILE original value given at command line.  */
+  const char *stdout_help; /**< @brief Redirect STDOUT from COMMAND to FILE help description.  */
+  char * stderr_arg;	/**< @brief Redirect STDERR from COMMAND to FILE.  */
+  char * stderr_orig;	/**< @brief Redirect STDERR from COMMAND to FILE original value given at command line.  */
+  const char *stderr_help; /**< @brief Redirect STDERR from COMMAND to FILE help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int detailed_help_given ;	/**< @brief Whether detailed-help was given.  */

@@ -31,402 +31,406 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-#include <errno.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
+#include <sys/filio.h>
 #include <limits.h>
 #include <unistd.h>
-#include <fcntl.h>
-
 #include "cmdline.h"
 
 static char *mkstemp_template, *template_buffer;
 static struct gengetopt_args_info args;
-
 static int run_command_exit_code;
 
 static int arg_init(int argc, char **argv);
-static int tmpl_quit(int code);
-static void tmpl_setenv();
-static void tmpl_atexit();
+static int set_environment();
+static void atexit_hook();
 static int write_mkstemp();
 static int run_program(const char *arg);
 static int run_command();
 
 int main(int argc, char **argv)
 {
-        int r, i;
-        pid_t pid;
+    int r, i;
+    pid_t pid;
+    char *tmp;
 
-        mkstemp_template = NULL;
-        template_buffer = NULL;
+    mkstemp_template = NULL;
+    template_buffer = NULL;
 
-        run_command_exit_code = 0;
+    run_command_exit_code = 0;
 
-        if ((r = arg_init(argc, argv)) != 0)
+    if ((r = arg_init(argc, argv)) != 0)
+        exit(EXIT_FAILURE);
+
+    if (args.background_flag) {
+        if ((r = daemon(0, 0)) != 0) {
+            perror("daemonize");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if((r = set_environment()) != 0) {
+        perror("set_environment");
+        exit(EXIT_FAILURE);
+    }
+
+    tmp = template_buffer;
+    if((r = asprintf(&template_buffer, "%c", '\0')) == -1) {
+        perror("template_buffer");
+        exit(EXIT_FAILURE);
+    }
+    free(tmp);
+
+    if (args.inputs_num == 1)
+        r = run_program(args.inputs[0]);
+    else if(args.inputs_num > 1)
+        for (i = 0; i < args.inputs_num; i++) {
+            r = run_program(args.inputs[i]);
+
+            if (r != 0 && !args.force_flag) {
+                perror("run_program");
                 exit(EXIT_FAILURE);
-
-        if (args.background_flag) {
-                if (daemon(0, 0) != 0) {
-                        perror("daemonize");
-                        exit(EXIT_FAILURE);
-                }
+            }
         }
+    else
+        r = run_program(NULL);
 
-        tmpl_setenv();
+    if (r != 0 && !args.force_flag) {
+        perror("run_program");
+        exit(EXIT_FAILURE);
+    }
 
-        r = asprintf(&template_buffer, "%c", '\0');
-        if (r == -1) {
-                perror("template_buffer");
-                exit(EXIT_FAILURE);
-        }
-
-        if (args.inputs_num == 1)
-                run_program(args.inputs[0]);
-        else if(args.inputs_num > 1)
-                for (i = 0; i < args.inputs_num; i++)
-                        run_program(args.inputs[i]);
-        else
-                run_program(NULL);
-
-        if (args.cat_flag) {
-                printf("%s", template_buffer);
-                return tmpl_quit(0);
-        }
-
-        r = write_mkstemp();
-        if (r != 0) {
-                perror("write_mkstemp");
-                exit(EXIT_FAILURE);
-        }
-
-        if (args.run_given) {
-                if ((r = run_command()) != 0) {
-                        perror("run_command");
-                        exit(EXIT_FAILURE);
-                }
-
-                r = unlink(mkstemp_template);
-
-                if (r != 0)
-                        perror("unlink mkstemp_template");
-
-                return tmpl_quit(run_command_exit_code);
-        }
-
-
-        if (args.delete_given) {
-                pid = fork();
-
-                if (pid == 0) {
-                        daemon(0, 0);
-
-                        sleep(args.delete_arg);
-                        r = unlink(mkstemp_template);
-                        exit(tmpl_quit(r));
-                } else if (pid < 0) {
-                        perror("fork for delete");
-                        exit(EXIT_FAILURE);
-                }
-        }
-
-        fprintf(stdout, "%s\n", mkstemp_template);
+    if (args.cat_flag) {
+        fprintf(stdout, "%s", template_buffer);
         fflush(stdout);
-        return tmpl_quit(0);
+        exit(EXIT_SUCCESS);
+    }
+
+    if ((r = write_mkstemp()) != 0) {
+        perror("write_mkstemp");
+        exit(EXIT_FAILURE);
+    }
+
+    if (args.run_given) {
+        if ((r = run_command()) != 0) {
+            perror("run_command");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((r = unlink(mkstemp_template)) != 0)
+            perror("unlink mkstemp_template");
+
+        exit(run_command_exit_code);
+    }
+
+
+    if (args.delete_given) {
+        pid = fork();
+
+        if (pid == 0) {
+            if((r = daemon(0, 0)) == -1) {
+                perror("delete daemon");
+                exit(EXIT_FAILURE);
+            }
+
+            sleep(args.delete_arg);
+            r = unlink(mkstemp_template);
+            exit(EXIT_SUCCESS);
+        } else if (pid < 0) {
+            perror("fork for delete");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    fprintf(stdout, "%s\n", mkstemp_template);
+    fflush(stdout);
+    return EXIT_SUCCESS;
 }
 
 static int arg_init(int argc, char **argv)
 {
-        int r;
+    int r;
 
-        if((r = cmdline_parser(argc, argv, &args)) != 0)
-                exit(EXIT_FAILURE);
+    if((r = cmdline_parser(argc, argv, &args)) != 0)
+        return 1;
 
 
-        if (!args.run_given && (args.stdout_given || args.stderr_given || args.background_flag)) {
-                fprintf(stderr, "tmpl: -r required, see --help\n");
-                fflush(stderr);
-                exit(EXIT_FAILURE);
-        }
+    if (!args.run_given &&
+            (args.stdout_given || args.stderr_given || args.background_flag)) {
+        fprintf(stderr, "tmpl: -r required, see --help\n");
+        fflush(stderr);
+        exit(EXIT_FAILURE);
+    }
 
-        return 0;
+    return 0;
 }
 
-static void tmpl_setenv()
+static int set_environment()
 {
-        int i, r;
-        const char *delim = "=";
-        for (i = 0; i < args.env_given; i++) {
-                char *key, *value;
-                key = strtok_r(args.env_arg[i], delim, &value);
-                if (key == NULL || value == NULL)
-                        continue;
-                r = setenv(key, value, 1);
-        }
+    int i, r;
+    const char *delim = "=";
+
+    for (i = 0; i < args.env_given; i++) {
+        char *key, *value;
+
+        key = strtok_r(args.env_arg[i], delim, &value);
+        if (key == NULL || value == NULL)
+            continue;
+
+        if((r = setenv(key, value, 1)) != 0)
+            return 1;
+    }
+
+    return 0;
 }
-static void tmpl_atexit()
+static void atexit_hook()
 {
-        tmpl_quit(1);
-}
-static int tmpl_quit(int code)
-{
+    if (template_buffer != NULL)
         free(template_buffer);
+
+    if (mkstemp_template != NULL)
         free(mkstemp_template);
-        return code;
 }
 
 static int run_program(const char *arg)
 {
-        int r;
-        char *path, *buf, *tmp;
-        char line[PATH_MAX];
+    int r;
+    char *path, *buf, *tmp;
+    char line[PATH_MAX];
+    FILE *fp;
 
-        FILE *fp;
+    buf = calloc(1, sizeof(char));
+    if (buf == NULL)
+        return 1;
 
-        buf = calloc(1, sizeof(char));
-        if (buf == NULL)
-                return 1;
+    if (arg == NULL) {
+        path = args.program_arg;
+    } else {
+        tmp = path;
+        r = asprintf(&path, "%s %s", args.program_arg, arg);
+        free(tmp);
 
-        if (arg == NULL) {
-                path = args.program_arg;
-        } else {
-                r = asprintf(&path, "%s %s", args.program_arg, arg);
-                if (r == -1)
-                        return 1;
-        }
-
-        fp = popen(path, "r");
-
-        if (fp == NULL)
-                return 1;
-
-        while (fgets(line, PATH_MAX, fp) != NULL) {
-                tmp = buf;
-                r = asprintf(&buf, "%s%s", buf, line);
-                if (r == -1)
-                        return 1;
-
-                free(tmp);
-                tmp = NULL;
-        }
-
-        r = pclose(fp);
         if (r == -1)
-                return 1;
+            return 1;
+    }
 
-        r = WEXITSTATUS(r);
+    fp = popen(path, "r");
+    if (fp == NULL)
+        return 1;
 
-        if (r != 0 && !args.force_flag) {
-                free(buf);
-                return 1;
-        }
+    while (fgets(line, PATH_MAX, fp) != NULL) {
+        tmp = buf;
+        r = asprintf(&buf, "%s%s", buf, line);
+        free(tmp);
 
-        r = asprintf(&template_buffer, "%s%s", template_buffer, buf);
+        if (r == -1)
+            return 1;
+    }
 
+    r = pclose(fp);
+    if (r == -1)
+        return 1;
+
+    r = WEXITSTATUS(r);
+
+    if (r != 0 && !args.force_flag) {
         free(buf);
+        return 1;
+    }
 
-        return r == -1 ? 1 : 0;
+    tmp = template_buffer;
+    r = asprintf(&template_buffer, "%s%s", template_buffer, buf);
+    free(tmp);
+
+    free(buf);
+
+    return r == 0 ? 0 : 1;
 }
 
 static int write_mkstemp()
 {
-        int fd, r;
-        size_t size;
+    int fd, r;
+    size_t size;
 
-        mkstemp_template = strdup(args.mkstemp_template_arg);
-        if (mkstemp_template == NULL)
-                return 1;
+    mkstemp_template = strdup(args.mkstemp_template_arg);
+    if (mkstemp_template == NULL)
+        return 1;
 
-        fd = mkstemp(mkstemp_template);
-        if (fd == -1)
-                return 1;
+    fd = mkstemp(mkstemp_template);
+    if (fd == -1)
+        return 1;
 
-        size = strlen(template_buffer);
-        r = write(fd, template_buffer, size);
-        if (r != size)
-                return 1;
+    size = strlen(template_buffer);
+    if ((r = write(fd, template_buffer, size)) != size)
+        return 1;
 
-        r = fchmod(fd, 0400);
-        if (r == -1)
-                return 1;
+    if ((r = fchmod(fd, 0400)) == -1)
+        return 1;
 
-        r = close(fd);
-        if (r != 0)
-                return 1;
+    if ((r = close(fd)) != 0)
+        return 1;
 
-        return 0;
+    return 0;
 }
 
 static void run_command_child()
 {
 
-	char *ptr, *arg, *program, *command;
-	char *delim = " ";
-	char *arguments[PATH_MAX];
-	size_t arguments_i = 0;
-	char abuf[PATH_MAX] = { '\0' };
-	size_t abuf_i;
-	int i;
+    char *ptr, *arg, *program, *command;
+    char *delim = " ";
+    char *arguments[PATH_MAX];
+    size_t arguments_i = 0;
+    char abuf[PATH_MAX] = { '\0' };
+    size_t abuf_i;
+    int i;
 
-        command = args.run_arg;
+    command = args.run_arg;
 
 
-	arg = NULL;
-	program = strtok_r(command, delim, &arg);
+    arg = NULL;
+    program = strtok_r(command, delim, &arg);
 
-	if (NULL == program)
-		program = command;
+    if (program == NULL)
+        program = command;
 
-	arguments[arguments_i++] = program;
+    arguments[arguments_i++] = program;
 
-	if (NULL != arg)
-	for (ptr = arg; *ptr != '\0'; ptr++) {
+    if (arg != NULL)
+        for (ptr = arg; *ptr != '\0'; ptr++) {
+            if (*ptr == '%') {
+                ptr++;
+                switch (*ptr) {
+                    case '%':
+                        break;
+                    case 'f':
+                        arguments[arguments_i++] = mkstemp_template;
+                        continue;
+                    default:
+                        break;
+                }
+            }
 
-		if (*ptr == '%') {
-			ptr++;
-			switch (*ptr) {
-				case '%':
-					break;
+            if (*ptr == ' ' || *ptr == '\0') {
+                if (abuf_i > 0) {
+                    abuf[abuf_i++] = '\0';
+                    arguments[arguments_i++] = strdup(abuf);
+                    for (i = 0; i < abuf_i; i++)
+                        abuf[i] = '\0';
+                    abuf_i = 0;
+                }
+                continue;
+            } else {
+                abuf[abuf_i++] = *ptr;
+            }
+        }
 
-				case 'f':
-					arguments[arguments_i++] = mkstemp_template;
-					continue;
-				default:
-					break;
-			}
-		}
+    arguments[arguments_i] = NULL;
 
-		if (*ptr == ' ' || *ptr == '\0') {
-			if (abuf_i > 0) {
-				abuf[abuf_i++] = '\0';
-				arguments[arguments_i++] = strdup(abuf);
-				for (i = 0; i < abuf_i; i++)
-					abuf[i] = '\0';
-				abuf_i = 0;
-			}
-			continue;
-		} else {
-			abuf[abuf_i++] = *ptr;
-		}
-	}
-
-	arguments[arguments_i] = NULL;
-
-	i = execvp(program, arguments);
-	// execvp failed
-        return;
+    execvp(program, arguments);
+    perror("execvp");
+    exit(EXIT_FAILURE);
 }
 static int run_command()
 {
 
-        int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
-        FILE *cstdin, *cstdout, *cstderr;
+    int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
+    FILE *cstdin, *cstdout, *cstderr;
 
-        pid_t pid, wpid, bpid;
-        int status, r;
+    pid_t pid, wpid, bpid;
+    int status, r;
 
-        FILE *redir_stdout = stdout;
-        FILE *redir_stderr = stderr;
+    FILE *redir_stdout = stdout;
+    FILE *redir_stderr = stderr;
 
 
-        pipe(stdin_pipe);
-        pipe(stdout_pipe);
-        pipe(stderr_pipe);
+    pipe(stdin_pipe);
+    pipe(stdout_pipe);
+    pipe(stderr_pipe);
 
-        pid = fork();
+    pid = fork();
 
-        if (pid == 0) {
-                close(stdin_pipe[1]);
-                close(stdout_pipe[0]);
-                close(stderr_pipe[0]);
+    if (pid == 0) {
+        close(stdin_pipe[1]);
+        close(stdout_pipe[0]);
+        close(stderr_pipe[0]);
 
-                dup2(stdin_pipe[0], STDIN_FILENO);
-                dup2(stdout_pipe[1], STDOUT_FILENO);
-                dup2(stderr_pipe[1], STDERR_FILENO);
+        dup2(stdin_pipe[0], STDIN_FILENO);
+        dup2(stdout_pipe[1], STDOUT_FILENO);
+        dup2(stderr_pipe[1], STDERR_FILENO);
 
-                run_command_child();
-        } else if (pid < 0) {
+        run_command_child();
+
+    } else if (pid < 0) {
+        return 1;
+    } else {
+        if (args.stdout_given)
+            redir_stdout = fopen(args.stdout_arg, "w");
+
+        if (redir_stdout == NULL)
                 return 1;
-        } else {
 
-                if (args.stdout_given) {
-                        redir_stdout = fopen(args.stdout_arg, "w");
-                        if (redir_stdout == NULL)
-                                return 1;
-                }
+        if (args.stderr_given)
+            redir_stderr = fopen(args.stderr_arg, "w");
 
-                if (args.stderr_given) {
-                        redir_stderr = fopen(args.stderr_arg, "w");
-                        if (redir_stderr == NULL)
-                                return 1;
-                }
+        if (redir_stderr == NULL)
+            return 1;
 
-                close(stdin_pipe[0]);
-                close(stdout_pipe[1]);
-                close(stderr_pipe[1]);
+        close(stdin_pipe[0]);
+        close(stdout_pipe[1]);
+        close(stderr_pipe[1]);
 
-                cstdin = fdopen(stdin_pipe[1], "w");
-                if (cstdin == NULL)
-                        return 1;
+        cstdin = fdopen(stdin_pipe[1], "w");
+        if (cstdin == NULL)
+            return 1;
 
-                cstdout = fdopen(stdout_pipe[0], "r");
-                if (cstdout == NULL)
-                        return 1;
+        cstdout = fdopen(stdout_pipe[0], "r");
+        if (cstdout == NULL)
+            return 1;
 
-                cstderr = fdopen(stderr_pipe[0], "r");
-                if (cstderr == NULL)
-                        return 1;
+        cstderr = fdopen(stderr_pipe[0], "r");
+        if (cstderr == NULL)
+            return 1;
 
-                int do_read = 1;
-                int od = 0;
-                int ed = 0;
-                int i;
-                int c;
-                int s;
+        int i;
+        size_t s;
 
+        do {
+            if (ioctl(stderr_pipe[0], FIONREAD, &s) == 0 && s > 0)
+                for ( i = 0; i < s; i ++)
+                    fputc(fgetc(cstderr), redir_stderr);
 
-                do {
-                        if (ioctl(stderr_pipe[0], FIONREAD, &s) == 0 && s > 0) {
-                                for ( i = 0; i < s; i ++) {
-                                        c = fgetc(cstderr);
-                                        fputc(c, redir_stderr);
-                                }
-                        }
-                        if (ioctl(stdout_pipe[0], FIONREAD, &s) == 0 && s > 0) {
-                                for ( i = 0; i < s; i ++) {
-                                        c = fgetc(cstdout);
-                                        fputc(c, redir_stdout);
-                                }
-                        }
-                        waitpid(pid, &status, WNOHANG);
-                        if (WIFEXITED(status)) {
-                                do_read = 0;
-                                break;
-                        }
+            if (ioctl(stdout_pipe[0], FIONREAD, &s) == 0 && s > 0)
+                for ( i = 0; i < s; i ++)
+                    fputc(fgetc(cstdout), redir_stdout);
 
-                        sleep(1);
-                } while (do_read != 0);
+            waitpid(pid, &status, WNOHANG);
+            if (WIFEXITED(status))
+                break;
 
-                fflush(cstdout);
-                fflush(cstderr);
-                fclose(cstdin);
-                fclose(cstdout);
-                fclose(cstderr);
+            sleep(1);
+        } while (1);
 
-                if (redir_stdout != stdout)
-                        fclose(redir_stdout);
+        fflush(cstdout);
+        fflush(cstderr);
+        fclose(cstdin);
+        fclose(cstdout);
+        fclose(cstderr);
 
-                if (redir_stderr != stderr)
-                        fclose(redir_stderr);
+        if (redir_stdout != stdout)
+            fclose(redir_stdout);
 
-                if (! WIFEXITED(status))
-                        return 1;
+        if (redir_stderr != stderr)
+            fclose(redir_stderr);
 
-                run_command_exit_code = WEXITSTATUS(status);
-                return 9;
-        }
+        if (! WIFEXITED(status))
+            return 1;
 
-        return 1; // this should never be reached
+        run_command_exit_code = WEXITSTATUS(status);
+        return 0;
+    }
+
+    perror("run_command");
+    return 1; // this should never be reached
 }

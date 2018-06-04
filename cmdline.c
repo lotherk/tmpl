@@ -25,7 +25,7 @@
 
 #include "cmdline.h"
 
-const char *gengetopt_args_info_purpose = "Generates mkstemp(3) file and writes output of PROGRAM to it.";
+const char *gengetopt_args_info_purpose = "Generates a temp file in mkstemp(3) format and writes output of PROGRAM to it.\nOptionally prints buffer to STDOUT instead of creating temp file.";
 
 const char *gengetopt_args_info_usage = "Usage: tmpl [OPTIONS]... [FILES]...";
 
@@ -38,21 +38,21 @@ const char *gengetopt_args_info_detailed_help[] = {
   "      --detailed-help           Print help, including all details and hidden\n                                  options, and exit",
   "  -V, --version                 Print version and exit",
   "\n",
-  "  -f, --force                   Force output generation even if PROGRAM fails\n                                  on a template. Use with caution!\n                                  (default=off)",
-  "  If PROGRAM fails on a template, no data (from that template)\n  will be added to the global buffer, instead of aborting. This might lead to\n  unwanted\n  behaviour if you use tmpl for config file generation.\n",
-  "  -T, --mkstemp-template=FORMAT Set mkstemp(3) template.\n                                  (default=`/tmp/.tmpl-XXXXXXXXXX')",
+  "  -f, --force                   Force output generation  (default=off)",
+  "  -T, --mkstemp-template=FORMAT Set mkstemp(3) template\n                                  (default=`/tmp/.tmpl-XXXXXXXXXX')",
   "  See mkstemp(3) man page",
-  "  -e, --env=KEY=VALUE           Set environment variable ENV to VALUE prior to\n                                  running PROGRAM or COMMAND",
-  "  -d, --delete=N                Spawns new process which deletes mkstemp(3)\n                                  file after N seconds.",
-  "  -p, --program=PROGRAM         Pass templateN to PROGRAM.  (default=`/bin/sh')",
-  "  Example: tmpl -p /usr/local/bin/ruby ~/.mutt.tmpl.rb\n",
+  "  -e, --env=KEY=VALUE           Set environment variable KEY to VALUE prior to\n                                  running PROGRAM or COMMAND",
+  "  -d, --delete=SECONDS          Spawns new process which deletes temp file\n                                  after SECONDS seconds",
+  "  -p, --program=PROGRAM         Run PROGRAM for each given FILE(S)\n                                  (default=`/bin/sh')",
+  "  Example: tmpl -r \"neomutt -F %f\" -p \"erb -T-\" ~/.mutt.tmpl.erb\n\n",
   "",
-  "  -c, --cat                     Print buffer to STDOUT (does not write\n                                  mkstemp(3) file)  (default=off)",
-  "  -r, --run=COMMAND             Run COMMAND and delete template afterwards.",
-  "  Instead of returning the path, tmpl runs COMMAND\n  and deletes the mkstemp(3) file after COMMAND returns.\n  It then exits with the return code of COMMAND.\n\n  Example: tmpl -r \"neomutt -F %f\" ~/.mutt.tmpl.sh\n\n  Variables:\n          %f  - The generated mkstemp(3) file path\n",
+  "  -c, --cat                     Print buffer to STDOUT and exit (does not write\n                                  temp file)  (default=off)",
+  "",
+  "  -r, --run=COMMAND             Run COMMAND and delete temp file on exit",
+  "  Instead of returning the path, tmpl runs COMMAND\n  and deletes the temp file after COMMAND returns.\n  It then exits with the return code of COMMAND.\n\n  Example: tmpl -r \"neomutt -F %f\" ~/.mutt.tmpl.sh\n\n  Variables:\n          %f  - The generated temp file path\n",
   "  -B, --background              Fork to background when used with -r\n                                  (default=off)",
-  "      --stdout=FILE             Redirect STDOUT from -r to FILE",
-  "      --stderr=FILE             Redirect STDERR from -r to FILE",
+  "      --stdout=FILE             Redirect STDOUT from COMMAND to FILE",
+  "      --stderr=FILE             Redirect STDERR from COMMAND to FILE",
   "\nSee tmpl(1) for more informations and examples.",
     0
 };
@@ -65,22 +65,23 @@ init_help_array(void)
   gengetopt_args_info_help[2] = gengetopt_args_info_detailed_help[2];
   gengetopt_args_info_help[3] = gengetopt_args_info_detailed_help[3];
   gengetopt_args_info_help[4] = gengetopt_args_info_detailed_help[4];
-  gengetopt_args_info_help[5] = gengetopt_args_info_detailed_help[6];
-  gengetopt_args_info_help[6] = gengetopt_args_info_detailed_help[8];
-  gengetopt_args_info_help[7] = gengetopt_args_info_detailed_help[9];
-  gengetopt_args_info_help[8] = gengetopt_args_info_detailed_help[10];
-  gengetopt_args_info_help[9] = gengetopt_args_info_detailed_help[12];
-  gengetopt_args_info_help[10] = gengetopt_args_info_detailed_help[13];
-  gengetopt_args_info_help[11] = gengetopt_args_info_detailed_help[14];
-  gengetopt_args_info_help[12] = gengetopt_args_info_detailed_help[16];
-  gengetopt_args_info_help[13] = gengetopt_args_info_detailed_help[17];
-  gengetopt_args_info_help[14] = gengetopt_args_info_detailed_help[18];
-  gengetopt_args_info_help[15] = gengetopt_args_info_detailed_help[19];
-  gengetopt_args_info_help[16] = 0; 
+  gengetopt_args_info_help[5] = gengetopt_args_info_detailed_help[5];
+  gengetopt_args_info_help[6] = gengetopt_args_info_detailed_help[7];
+  gengetopt_args_info_help[7] = gengetopt_args_info_detailed_help[8];
+  gengetopt_args_info_help[8] = gengetopt_args_info_detailed_help[9];
+  gengetopt_args_info_help[9] = gengetopt_args_info_detailed_help[11];
+  gengetopt_args_info_help[10] = gengetopt_args_info_detailed_help[12];
+  gengetopt_args_info_help[11] = gengetopt_args_info_detailed_help[13];
+  gengetopt_args_info_help[12] = gengetopt_args_info_detailed_help[14];
+  gengetopt_args_info_help[13] = gengetopt_args_info_detailed_help[16];
+  gengetopt_args_info_help[14] = gengetopt_args_info_detailed_help[17];
+  gengetopt_args_info_help[15] = gengetopt_args_info_detailed_help[18];
+  gengetopt_args_info_help[16] = gengetopt_args_info_detailed_help[19];
+  gengetopt_args_info_help[17] = 0; 
   
 }
 
-const char *gengetopt_args_info_help[17];
+const char *gengetopt_args_info_help[18];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -153,13 +154,13 @@ void init_args_info(struct gengetopt_args_info *args_info)
   args_info->detailed_help_help = gengetopt_args_info_detailed_help[1] ;
   args_info->version_help = gengetopt_args_info_detailed_help[2] ;
   args_info->force_help = gengetopt_args_info_detailed_help[4] ;
-  args_info->mkstemp_template_help = gengetopt_args_info_detailed_help[6] ;
-  args_info->env_help = gengetopt_args_info_detailed_help[8] ;
+  args_info->mkstemp_template_help = gengetopt_args_info_detailed_help[5] ;
+  args_info->env_help = gengetopt_args_info_detailed_help[7] ;
   args_info->env_min = 0;
   args_info->env_max = 0;
-  args_info->delete_help = gengetopt_args_info_detailed_help[9] ;
-  args_info->program_help = gengetopt_args_info_detailed_help[10] ;
-  args_info->cat_help = gengetopt_args_info_detailed_help[13] ;
+  args_info->delete_help = gengetopt_args_info_detailed_help[8] ;
+  args_info->program_help = gengetopt_args_info_detailed_help[9] ;
+  args_info->cat_help = gengetopt_args_info_detailed_help[12] ;
   args_info->run_help = gengetopt_args_info_detailed_help[14] ;
   args_info->background_help = gengetopt_args_info_detailed_help[16] ;
   args_info->stdout_help = gengetopt_args_info_detailed_help[17] ;
@@ -962,7 +963,7 @@ cmdline_parser_internal (
           cmdline_parser_free (&local_args_info);
           exit (EXIT_SUCCESS);
 
-        case 'f':	/* Force output generation even if PROGRAM fails on a template. Use with caution!.  */
+        case 'f':	/* Force output generation.  */
         
         
           if (update_arg((void *)&(args_info->force_flag), 0, &(args_info->force_given),
@@ -972,7 +973,7 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'T':	/* Set mkstemp(3) template..  */
+        case 'T':	/* Set mkstemp(3) template.  */
         
         
           if (update_arg( (void *)&(args_info->mkstemp_template_arg), 
@@ -984,7 +985,7 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'e':	/* Set environment variable ENV to VALUE prior to running PROGRAM or COMMAND.  */
+        case 'e':	/* Set environment variable KEY to VALUE prior to running PROGRAM or COMMAND.  */
         
           if (update_multiple_arg_temp(&env_list, 
               &(local_args_info.env_given), optarg, 0, 0, ARG_STRING,
@@ -993,7 +994,7 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'd':	/* Spawns new process which deletes mkstemp(3) file after N seconds..  */
+        case 'd':	/* Spawns new process which deletes temp file after SECONDS seconds.  */
         
         
           if (update_arg( (void *)&(args_info->delete_arg), 
@@ -1005,7 +1006,7 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'p':	/* Pass templateN to PROGRAM..  */
+        case 'p':	/* Run PROGRAM for each given FILE(S).  */
         
         
           if (update_arg( (void *)&(args_info->program_arg), 
@@ -1017,7 +1018,7 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'c':	/* Print buffer to STDOUT (does not write mkstemp(3) file).  */
+        case 'c':	/* Print buffer to STDOUT and exit (does not write temp file).  */
         
         
           if (update_arg((void *)&(args_info->cat_flag), 0, &(args_info->cat_given),
@@ -1027,7 +1028,7 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'r':	/* Run COMMAND and delete template afterwards..  */
+        case 'r':	/* Run COMMAND and delete temp file on exit.  */
         
         
           if (update_arg( (void *)&(args_info->run_arg), 
@@ -1057,7 +1058,7 @@ cmdline_parser_internal (
             exit (EXIT_SUCCESS);
           }
 
-          /* Redirect STDOUT from -r to FILE.  */
+          /* Redirect STDOUT from COMMAND to FILE.  */
           if (strcmp (long_options[option_index].name, "stdout") == 0)
           {
           
@@ -1071,7 +1072,7 @@ cmdline_parser_internal (
               goto failure;
           
           }
-          /* Redirect STDERR from -r to FILE.  */
+          /* Redirect STDERR from COMMAND to FILE.  */
           else if (strcmp (long_options[option_index].name, "stderr") == 0)
           {
           
