@@ -20,12 +20,6 @@ AC_PROG_MAKE_SET
 
 AC_CANONICAL_HOST
 
-AC_PATH_PROG([GENGETOPT], [gengetopt])
-
-if test -z "$GENGETOPT"; then
-    AC_MSG_ERROR([*** 'gengetopt' missing, please install or fix your \$PATH ***])
-fi
-
 
 # Checks for header files.
 AC_CHECK_HEADERS([limits.h stdlib.h string.h sys/ioctl.h unistd.h sys/filio.h])
