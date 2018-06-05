@@ -224,5 +224,8 @@ OpenBSD 6.3			 May 28, 2018			   OpenBSD 6.3
 ### OpenVPN with config stored in `pass file`
 (See [lukrop/pass-file](https://github.com/lukrop/pass-file) for pass file plugin)
 ```
-# tmpl -r "openvpn --config %f" --stdout /var/log/tmpl.openvpn.log -p "pass file cat" "VPN/mysecurevpnconfig"
+# tmpl -r "openvpn --config %f" \
+                    --stdout /var/log/tmpl.openvpn.log \
+                    -p "pass file cat" \
+                    "VPN/mysecurevpnconfig"
 ```
