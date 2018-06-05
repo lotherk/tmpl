@@ -19,3 +19,4 @@ install-sh
 libtool
 ltmain.sh
 missing
+Makefile.in
