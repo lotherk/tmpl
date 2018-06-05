@@ -81,16 +81,15 @@ int main(int argc, char **argv)
     atexit(atexit_hook);
 
     if ((r = arg_init(argc, argv)) != 0)
-        exit(EXIT_FAILURE);
+        err(1, "arg_init");
 
     if (args.background_flag)
         if ((r = daemon(0, 0)) != 0)
             err(1, "daemonize");
 
 
-    if((r = set_environment()) != 0) {
+    if((r = set_environment()) != 0)
         err(1, "set_environment");
-    }
 
     if (args.inputs_num == 1)
         r = run_program(args.inputs[0]);
@@ -104,9 +103,8 @@ int main(int argc, char **argv)
     else
         r = run_program(NULL);
 
-    if (r != 0 && !args.force_flag) {
+    if (r != 0 && !args.force_flag)
         err(1, "run_program");
-    }
 
     if (args.cat_flag) {
         fprintf(stdout, "%s", template_buffer);
@@ -115,7 +113,7 @@ int main(int argc, char **argv)
     }
 
     if ((r = write_mkstemp()) != 0)
-        err(1, "write_mkstemp");
+        err(1, "write_mkstemp (%d)", r);
 
     if (args.run_given) {
         if ((r = run_command()) != 0)
@@ -130,14 +128,12 @@ int main(int argc, char **argv)
         pid = fork();
 
         if (pid == 0) {
-            if((r = daemon(0, 0)) == -1) {
+            if((r = daemon(0, 0)) == -1)
                 err(1, "delete daemon");
-            }
 
 #ifdef HAVE_PLEDGE
-            if (pledge("stdio tmppath", NULL) == -1) {
+            if (pledge("stdio tmppath", NULL) == -1)
                 err(1, "pledge");
-            }
 #endif
             sleep(args.delete_arg);
             r = unlink(mkstemp_template);
@@ -241,7 +237,6 @@ static int run_program(const char *arg)
         return 1;
 
     r = WEXITSTATUS(r);
-
     if (r != 0 && !args.force_flag) {
         free(buf);
         return 1;
@@ -265,26 +260,26 @@ static int write_mkstemp()
 {
     int fd, r;
     size_t size;
+
     mkstemp_template = strdup(MKSTEMP_TEMPLATE);
     if (mkstemp_template == NULL)
-        return 1;
-
+        return -1;
     fd = mkstemp(mkstemp_template);
     if (fd == -1)
-        return 1;
+        return -2;
 
     if ((r = fchmod(fd, 0600)) == -1)
-        return 1;
+        return -3;
 
     size = strlen(template_buffer);
     if ((r = write(fd, template_buffer, size)) != size)
-        return 1;
+        return -4;
 
     if ((r = fchmod(fd, 0400)) == -1)
-        return 1;
+        return -5;
 
     if ((r = close(fd)) != 0)
-        return 1;
+        return -6;
 
     return 0;
 }
@@ -374,7 +369,6 @@ static int run_command()
 
         run_command_child();
         err(1, "run_command_child");
-
     } else if (pid < 0) {
         return 1;
     } else {
@@ -415,12 +409,20 @@ static int run_command()
 
         int i;
         size_t s;
-        struct timespec tim, tim2;
+        struct timespec tim;
+        fd_set fds;
+        int maxfd;
+
+        FD_ZERO(&fds);
+        FD_SET(stdout_pipe[0], &fds);
+        FD_SET(stderr_pipe[0], &fds);
+
+        maxfd = stderr_pipe[0] > stdout_pipe[0] ? stderr_pipe[0] : stdout_pipe[0];
 
         tim.tv_sec = 0;
         tim.tv_nsec = 50000000L;
-
-        while(1) {
+        s = 1;
+        while(pselect(maxfd + 1, &fds, NULL, NULL, &tim, NULL) != -1) {
             if (ioctl(stderr_pipe[0], FIONREAD, &s) == 0 && s > 0) {
                 for ( i = 0; i < s; i++)
                     fputc(fgetc(cstderr), redir_stderr);
@@ -436,26 +438,20 @@ static int run_command()
                 if (WIFEXITED(status))
                     break;
 
-                if (WIFSIGNALED(status)) {
-                    warn("child received unhandled signal");
-                    break;
-                }
+                else if (WIFSIGNALED(status))
+                    err(1, "child received unhandled signal");
 
-                if (WCOREDUMP(status)) {
-                    warn("child core dumped");
-                    break;
-                }
+                else if (WCOREDUMP(status))
+                    err(1, "child core dumped");
 
-                if (WIFSTOPPED(status)) {
-                    warn("child is stopped");
-                    break;
-                }
+                else if (WIFSTOPPED(status))
+                    err(1, "child stopped");
+
+                else
+                    errx(1, "child unknown exit");
             }
-            nanosleep(&tim, &tim2);
         }
 
-        fflush(cstdout);
-        fflush(cstderr);
         fclose(cstdin);
         fclose(cstdout);
         fclose(cstderr);

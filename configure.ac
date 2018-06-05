@@ -6,10 +6,10 @@ AC_INIT(tmpl, 0.1, bugs+tmpl@hiddenbox.org, [], [https://github.com/lotherk/tmpl
 AM_INIT_AUTOMAKE([subdir-objects no-dependencies])
 
 MKSTEMP_TEMPLATE="/tmp/.tmpl-XXXXXXXXXX"
-AC_DEFINE([MKSTEMP_TEMPLATE], ["$MKSTEMP_TEMPLATE"], ["Default mkstemp(3) template"])
+AC_DEFINE_UNQUOTED([MKSTEMP_TEMPLATE], ["$MKSTEMP_TEMPLATE"], ["Default mkstemp(3) template"])
 AC_SUBST([COPYRIGHT_NOTICE], ["Copyright (C) 2018 Konrad Lother <k@hiddenbox.org>"])
 AC_SUBST([DEFAULT_PROGRAM], [/bin/sh])
-AC_SUBST([MKSTEMP_TEMPLATE], ["$MKSTEMP_TEMPLATE"])
+AC_SUBST([MKSTEMP_TEMPLATE], "$MKSTEMP_TEMPLATE")
 
 AC_LANG([C])
 
