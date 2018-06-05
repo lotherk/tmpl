@@ -28,7 +28,7 @@ Usage: tmpl [-hV] [-f] [-d SECONDS] [-e KEY=VALUE] [-p PROGRAM] [ -c | [-B] -r C
   -d, --delete=SECONDS   Spawns new process which deletes temp file after
                            SECONDS seconds
   -p, --program=PROGRAM  Run PROGRAM for each given ARGS  (default=`/bin/sh')
-  -c, --cat              Print buffer to STDOUT and exit (does not write temp
+  -c, --cat              Print output to STDOUT and exit (does not write temp
                            file)  (default=off)
   -r, --run=COMMAND      Run COMMAND and delete temp file on exit.
                            Example: tmpl -r "neomutt -F %f" ...
@@ -102,7 +102,8 @@ OPTIONS
 
 	     %f -   Path to mkstemp(3) generated file
 
-	     Example: tmpl -r neomutt -F %f ~/.mutt/genconf.sh
+	     Example:
+		   tmpl -r 'neomutt -F %f' ~/.mutt/genconf.sh
 
      -B, --background
 	     Fork to background. Can only be used with -r.
@@ -139,7 +140,7 @@ FUNCTION
      file even though one of the scripts might have failed. This could lead to
      an unsafe httpd config or otherwise unwanted behaviour. The use of -f is
      not encouraged unless you are really sure!	 STDERR of PROGRAM is never
-     written to temp file or output, if -c is used.
+     written to temp file or output.
 
 
 EXAMPLES

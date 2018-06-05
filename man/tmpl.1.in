@@ -46,7 +46,10 @@ and set to
 .Ar 0400
 via
 .Xr fchmod 2
-after writing STDOUT.
+after writing STDOUT. The string
+.Va @MKSTEMP_TEMPLATE@
+is used for
+.Xr mkstemp 3 .
 .Pp
 This utility is especially useful if you need to dynamically create
 configuration files for programs.
