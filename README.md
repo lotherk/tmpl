@@ -11,56 +11,35 @@ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This is free
 software, and you are welcome to redistribute it under certain conditions; see
 the template COPYING for details.
 
-Generates a temp file in mkstemp(3) format and writes output of PROGRAM to it.
-Optionally prints buffer to STDOUT instead of creating temp file.
+Generates temp file via mkstemp(3) and writes output of PROGRAM to it.
+Optionally prints output to STDOUT instead of creating temp file.
 
-Usage: tmpl [-h|--help] [--detailed-help] [--full-help] [-V|--version]
-         [-f|--force] [-eKEY=VALUE|--env=KEY=VALUE]
-         [-dSECONDS|--delete=SECONDS] [-pPROGRAM|--program=PROGRAM] [-c|--cat]
-         [-rCOMMAND|--run=COMMAND] [-B|--background] [--stdout=FILE]
-         [--stderr=FILE] [FILES]...
+Usage: tmpl [-hV] [-f] [-d SECONDS] [-e KEY=VALUE] [-p PROGRAM] [ -c | [-B] -r COMMAND
+[--stdout=FILE] [--stderr=FILE]] [--] ARGS
 
-  -h, --help                    Print help and exit
-      --detailed-help           Print help, including all details and hidden
-                                  options, and exit
-      --full-help               Print help, including hidden options, and exit
-  -V, --version                 Print version and exit
+  -h, --help             Print help and exit
+  -V, --version          Print version and exit
 
 
-  -f, --force                   Force output generation  (default=off)
-  -T, --mkstemp-template=FORMAT Set mkstemp(3) template
-                                  (default=`/tmp/.tmpl-XXXXXXXXXX')
-  See mkstemp(3) man page
-  -e, --env=KEY=VALUE           Set environment variable KEY to VALUE prior to
-                                  running PROGRAM or COMMAND
-  -d, --delete=SECONDS          Spawns new process which deletes temp file
-                                  after SECONDS seconds
-  -p, --program=PROGRAM         Run PROGRAM for each given FILE(S)
-                                  (default=`/bin/sh')
-  Example: tmpl -r "neomutt -F %f" -p "erb -T-" ~/.mutt.tmpl.erb
-
-
-
-  -c, --cat                     Print buffer to STDOUT and exit (does not write
-                                  temp file)  (default=off)
-
-  -r, --run=COMMAND             Run COMMAND and delete temp file on exit
-  Instead of returning the path, tmpl runs COMMAND
-  and deletes the temp file after COMMAND returns.
-  It then exits with the return code of COMMAND.
-
-  Example: tmpl -r "neomutt -F %f" ~/.mutt.tmpl.sh
-
-  Variables:
-          %f  - The generated temp file path
-
-  -B, --background              Fork to background when used with -r
-                                  (default=off)
-      --stdout=FILE             Redirect STDOUT from COMMAND to FILE
-      --stderr=FILE             Redirect STDERR from COMMAND to FILE
+  -f, --force            Do not abort output generation if PROGRAM fails with
+                           ARGS  (default=off)
+  -e, --env=KEY=VALUE    Set environment variable KEY to VALUE prior to running
+                           PROGRAM or COMMAND
+  -d, --delete=SECONDS   Spawns new process which deletes temp file after
+                           SECONDS seconds
+  -p, --program=PROGRAM  Run PROGRAM for each given ARGS  (default=`/bin/sh')
+  -c, --cat              Print buffer to STDOUT and exit (does not write temp
+                           file)  (default=off)
+  -r, --run=COMMAND      Run COMMAND and delete temp file on exit.
+                           Example: tmpl -r "neomutt -F %f" ...
+                           %f - path to temp file
+  -B, --background       Fork to background when used with -r  (default=off)
+      --stdout=FILE      Redirect STDOUT from COMMAND to FILE
+      --stderr=FILE      Redirect STDERR from COMMAND to FILE
 
 See tmpl(1) for more informations and examples.
 Send bug reports to bugs+tmpl@hiddenbox.org
+Visit https://github.com/lotherk/tmpl
 
 ```
 
@@ -72,50 +51,36 @@ NAME
      tmpl  Generates mkstemp(3) file and writes output of PROGRAM to it
 
 SYNOPSIS
-     tmpl [-hV] [-fc] [-T FORMAT] [-e KEY=VALUE] [-d SECONDS] [-p PROGRAM]
-	  [-r COMMAND] template...
+     tmpl [-hV] [-f] [-T FORMAT] [-e KEY=VALUE] [-d SECONDS] [-p PROGRAM]
+	  [[-c] | [-r COMMAND] [[-B] [--stdout FILE] [--stderr FILE]]] [--]
+	  ARGS
 
 DESCRIPTION
-     Generates mkstemp(3) file and writes output of PROGRAM to it.
-     Alternativley, when used with -c, prints generated content to STDOUT and
+     tmpl generates mkstemp(3) file and writes output of PROGRAM to it.
+     Alternativley, when used with -c, prints generated output to STDOUT and
      does not create and return a mkstemp(3) file.  mkstemp(3) files are
-     created with mode 0600 by mkstemp(3) and set to 0400 via chmod(2) after
-     writing STDOUT. Use -m, --mode MODE to change that.
+     created with mode 0600 and set to 0400 via fchmod(2) after writing
+     STDOUT.
 
      This utility is especially useful if you need to dynamically create
      configuration files for programs.
 
      tmpl does not have any templating language itself, instead it uses STDOUT
-     from whatever you pass to -p PROGRAM.  This allows you to use any
-     templating language you want, if it has an interpreter or if you can wrap
-     a script around it.
+     from whatever you pass to -p PROGRAM.
 
      To use, for example, erb you'd do something like this:
 
-	   tmpl -p /usr/local/bin/erb -T- /path/to/your.erb
+	   tmpl -p '/usr/local/bin/erb -T-' /path/to/your.erb
 
 OPTIONS
      -h, --help
 	     Print help and exit
 
-     --detailed-help
-	     Print help, including all details and hidden options, and exit
-
-     -V, --version
-	     Print version and exit
-
      -f, --force
-	     Force output generation even if PROGRAM fails on a template...
-	     Use with caution!
+	     Do not abort output generation if PROGRAM fails with one or more
+	     ARGS.  Use with caution!
 
-     -c, --cat
-	     Print output to STDOUT and do not create and return mkstemp(3)
-	     file
-
-     -T, --mkstemp-template FORMAT
-	     Set mkstemp(3) template. (default: /tmp/.tmpl-XXXXXXXXXX)
-
-     -e, --environment KEY=VALUE
+     -e, --env KEY=VALUE
 	     Set environment variable KEY to VALUE prior to running PROGRAM or
 	     COMMAND
 
@@ -123,24 +88,42 @@ OPTIONS
 	     Spawns new process which deletes mkstemp(3) file after SECONDS
 	     seconds. Value is passed to sleep(3).
 
+     -p, --programm PROGRAM
+	     Run PROGRAM for each given argument in ARGS.  Default is /bin/sh.
+
+     -c, --cat
+	     Print output to STDOUT and do not create and return mkstemp(3)
+	     file. This can not be used with -r.
+
      -r, --run COMMAND
-	     Run COMMAND and deletes mkstemp(3) file afterwards
+	     Run COMMAND and delete mkstemp(3) file on exit. Can not be used
+	     with -r.  You can use the following variables in your COMMAND
+	     string to be replaced by tmpl:
 
-     -p, --program PROGRAM
-	     Pass template... to PROGRAM (default: /bin/sh)
+	     %f -   Path to mkstemp(3) generated file
 
-TEMPLATE
-     A TEMPLATE is a shell script or any other input file or argument given to
-     PROGRAM set with -p.
+	     Example: tmpl -r neomutt -F %f ~/.mutt/genconf.sh
 
-     The default program is /bin/sh
+     -B, --background
+	     Fork to background. Can only be used with -r.
 
-     For example:
+     --stdout FILE
+	     Pipe STDOUT from COMMAND to FILE.	Can only be used with -r
+
+     --stderr FILE
+	     Pipe STDERR from COMMAND to FILE.	Defaults to the value of
+	     --stdout if not set. Can only be used with -r.
+
+FUNCTION
+     tmpl calls PROGRAM for each given argument in ARGS.  The default for
+     PROGRAM is /bin/sh.
+
+     Example:
 
 	   tmpl -p /bin/sh /path/to/script1.sh /path/to/script2.sh
 
-     will run script1.sh and script2.sh successively and result in 2 system
-     calls:
+     passes script1.sh and script2.sh subsequently to PROGRAM and will result
+     in two system calls:
 
 	   /bin/sh /path/to/script1.sh
 	   /bin/sh /path/to/script2.sh
@@ -148,16 +131,16 @@ TEMPLATE
      If either script fails to execute no output or mkstemp(3) file will be
      generated unless -f is used.
 
-     For example:
+     Example:
 
 	   tmpl -f -r 'httpd -f %f' server.sh vhosts.sh
 
      will run httpd with the generated mkstemp(3) file as its configuration
      file even though one of the scripts might have failed. This could lead to
      an unsafe httpd config or otherwise unwanted behaviour. The use of -f is
-     not encouraged unless you are really sure!
+     not encouraged unless you are really sure!	 STDERR of PROGRAM is never
+     written to temp file or output, if -c is used.
 
-     STDERR is never written to tmpl its buffer.
 
 EXAMPLES
      A typical use case would be running (neo)mutt with multiple accounts
@@ -178,8 +161,8 @@ EXAMPLES
 	   neomutt -F $(tmpl -e ACCOUNT=k@hiddenbox.org
 	   ~/.mutt/mutt-gen-config.sh)
 
-     but in this case tmpl can not remove the mkstemp(3) file since it never
-     knows when neomutt exits. A better approach would be something like
+     but in this case tmpl can not remove the mkstemp(3) file since it will
+     never know when neomutt exits. A better approach would be something like
 
 	   CFG=$(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
 	   neomutt -F $CFG; rm -f $CFG
@@ -190,7 +173,7 @@ EXAMPLES
 	   ~/.mutt/mutt-gen-config.sh)
 
      will give neomutt 5 seconds (via -d) to read the config from mkstemp(3)
-     file, which gets then deleted.
+     file, which then gets deleted.
 
      Try the following example in your terminal:
 
@@ -201,10 +184,15 @@ EXAMPLES
 
      This should give you a basic overview of what tmpl can do for you.
 
+FEATURES
+     tmpl uses pledge(2) if available.
+
 BUGS
      The parser for -r is pretty bad so don't try to use any fancy shell
      syntax with quotes or other special chars. It might lead to unexpected
-     behaviour. You should instead use a wrapper script.
+     behaviour. You should use a wrapper script instead.
+
+     Send bug reports to bugs+tmpl@hiddenbox.org.
 
 SEE ALSO
      mkstemp(3)

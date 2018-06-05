@@ -2,8 +2,11 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT(tmpl, 0.1, bugs+tmpl@hiddenbox.org)
+AC_INIT(tmpl, 0.1, bugs+tmpl@hiddenbox.org, [], [https://github.com/lotherk/tmpl])
 AM_INIT_AUTOMAKE([subdir-objects no-dependencies])
+
+AC_SUBST([COPYRIGHT_NOTICE], ["Copyright (C) 2018 Konrad Lother <k@hiddenbox.org>"])
+AC_SUBST([DEFAULT_PROGRAM], [/bin/sh])
 
 AC_LANG([C])
 
@@ -13,13 +16,9 @@ AC_CONFIG_FILES([tmpl.ggo man/tmpl.1])
 
 # Checks for programs.
 AC_PROG_CC([clang cc gcc])
-AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 # Checks for libraries.
-
-AC_CANONICAL_HOST
-
 
 # Checks for header files.
 AC_CHECK_HEADERS([limits.h stdlib.h string.h sys/ioctl.h unistd.h sys/filio.h])
@@ -33,7 +32,7 @@ AC_FUNC_FORK
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_STRTOD
-AC_CHECK_FUNCS([pledge atexit dup2 setenv strchr strdup])
+AC_CHECK_FUNCS([pledge atexit dup2 setenv strchr strdup asprintf])
 
 
 AC_OUTPUT(Makefile src/Makefile man/Makefile)

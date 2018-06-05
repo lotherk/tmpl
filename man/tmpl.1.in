@@ -7,23 +7,34 @@
 .Xr mkstemp 3
 file and writes output of PROGRAM to it
 .Sh SYNOPSIS
-.Nm tmpl
+.Nm @PACKAGE@
 .Op Fl hV
-.Op Fl fc
+.Op Fl f
 .Op Fl T Ar FORMAT
 .Op Fl e Ar KEY=VALUE
 .Op Fl d Ar SECONDS
 .Op Fl p Ar PROGRAM
+.Oo
+.Op Fl c
+|
 .Op Fl r Ar COMMAND
-.Ar template...
+.Oo
+.Op Fl B
+.Op Fl -stdout Ar FILE
+.Op Fl -stderr Ar FILE
+.Oc
+.Oc
+.Op Fl -
+.Ar ARGS
 .Sh DESCRIPTION
-Generates
+.Nm
+generates
 .Xr mkstemp 3
 file and writes output of
 .Ar PROGRAM
 to it. Alternativley, when used with
 .Ar -c ,
-prints generated content to
+prints generated output to
 .Ar STDOUT
 and does not create and return a
 .Xr mkstemp 3
@@ -31,16 +42,11 @@ file.
 .Xr mkstemp 3
 files are created with mode
 .Ar 0600
-by
-.Xr mkstemp 3
 and set to
 .Ar 0400
 via
-.Xr chmod 2
-after writing STDOUT. Use
-.Fl m, -mode
-.Ar MODE
-to change that.
+.Xr fchmod 2
+after writing STDOUT.
 .Pp
 This utility is especially useful if you need to dynamically create
 configuration files for programs.
@@ -48,40 +54,23 @@ configuration files for programs.
 .Nm
 does not have any templating language itself, instead it uses STDOUT from whatever you pass to
 .Fl p Ar PROGRAM .
-This allows you to use any templating language you want, if it has an interpreter or if you can wrap a script around it.
 .Pp
-To use, for example, erb you'd do something like this:
+To use, for example,
+.Va erb
+you'd do something like this:
 .Pp
-.Bd -offset center
-tmpl -p
-.Dq /usr/local/bin/erb -T-
-/path/to/your.erb
-.Ed
+.Dl @PACKAGE@ -p '/usr/local/bin/erb -T-' /path/to/your.erb
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl h, -help
 Print help and exit
-.It Fl -detailed-help
-Print help, including all details and hidden options, and exit
-.It Fl V, -version
-Print version and exit
 .It Fl f, -force
-Force output generation even if
+Do not abort output generation if
 .Ar PROGRAM
-fails on a
-.Ar template...
+fails with one or more
+.Ar ARGS .
 Use with caution!
-.It Fl c, -cat
-Print output to
-.Ar STDOUT
-and do not create and return
-.Xr mkstemp 3
-file
-.It Fl T, -mkstemp-template Ar FORMAT
-Set
-.Xr mkstemp 3
-template. (default: /tmp/.tmpl-XXXXXXXXXX)
-.It Fl e, -environment Ar KEY=VALUE
+.It Fl e, -env Ar KEY=VALUE
 Set environment variable KEY to VALUE prior to running
 .Ar PROGRAM
 or
@@ -92,34 +81,85 @@ Spawns new process which deletes
 file after
 .Ar SECONDS
 seconds. Value is passed to sleep(3).
+.It Fl p, -programm Ar PROGRAM
+Run
+.Ar PROGRAM
+for each given argument in
+.Ar ARGS .
+Default is
+.Ar @DEFAULT_PROGRAM@ .
+.It Fl c, -cat
+Print output to
+.Ar STDOUT
+and do not create and return
+.Xr mkstemp 3
+file. This can not be used with
+.Fl r .
 .It Fl r, -run Ar COMMAND
 Run
 .Ar COMMAND
-and deletes
-.Xr mkstemp 3 file afterwards
-.It Fl p, -program Ar PROGRAM
-Pass
-.Ar template...
+and delete
+.Xr mkstemp 3
+file on exit. Can not be used with
+.Fl r .
+You can use the following variables in your
+.Ar COMMAND
+string to be replaced by
+.Nm :
+.Pp
+.Bk
+.Ar %f
+-   Path to
+.Xr mkstemp 3
+generated file
+.Ek
+.Pp
+Example:
+@PACKAGE@ -r
+.Dq neomutt -F %f
+~/.mutt/genconf.sh
+.It Fl B, -background
+Fork to background. Can only be used with
+.Fl r .
+.It Fl -stdout Ar FILE
+Pipe
+.Ar STDOUT
+from
+.Ar COMMAND
 to
-.Ar PROGRAM
-(default: /bin/sh)
+.Ar FILE .
+Can only be used with
+.Fl r
+.It Fl -stderr Ar FILE
+Pipe
+.Ar STDERR
+from
+.Ar COMMAND
+to
+.Ar FILE .
+Defaults to the value of
+.Fl -stdout
+if not set. Can only be used with
+.Fl r .
 .El
-.Sh TEMPLATE
-A
-.Va TEMPLATE
-is a shell script or any other input file or argument given to
+.Sh FUNCTION
+.Nm
+calls
 .Ar PROGRAM
-set with
-.Fl p .
+for each given argument in
+.Ar ARGS .
+The default for
+.Ar PROGRAM
+is
+.Va @DEFAULT_PROGRAM@ .
 .Pp
-The default program is
-.Va /bin/sh
+Example:
 .Pp
-For example:
+.Dl @PACKAGE@ -p /bin/sh /path/to/script1.sh /path/to/script2.sh
 .Pp
-.Dl tmpl -p /bin/sh /path/to/script1.sh /path/to/script2.sh
-.Pp
-will run script1.sh and script2.sh successively and result in 2 system calls:
+passes script1.sh and script2.sh subsequently to
+.Ar PROGRAM
+and will result in two system calls:
 .Pp
 .Dl /bin/sh /path/to/script1.sh
 .Dl /bin/sh /path/to/script2.sh
@@ -130,9 +170,9 @@ file will be generated unless
 .Fl f
 is used.
 .Pp
-For example:
+Example:
 .Pp
-.Dl tmpl -f -r 'httpd -f %f' server.sh vhosts.sh
+.Dl @PACKAGE@ -f -r 'httpd -f %f' server.sh vhosts.sh
 .Pp
 will run httpd with the generated
 .Xr mkstemp 3
@@ -141,15 +181,18 @@ file as its configuration file even though one of the scripts might have failed.
 is not encouraged unless you are
 \fB\really\fR
 sure!
+.Va STDERR
+of
+.Ar PROGRAM
+is never written to temp file or output, if
+.Fl c
+is used.
 
-STDERR is never written to
-.Nm
-its buffer.
 .Sh EXAMPLES
 A typical use case would be running (neo)mutt with multiple accounts using a single
 configuration file.
 .Pp
-.Dl tmpl -r 'neomutt -F %f' -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh
+.Dl @PACKAGE@ -r 'neomutt -F %f' -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh
 .Pp
 This will pass ~/.mutt/mutt-gen-config.sh, which is a script that generates a mutt configuration file, to /bin/sh. All output mutt-gen-config.sh generates will be written to a
 .Xr mkstemp 3
@@ -164,43 +207,51 @@ file as soon as neomutt exits.
 .Pp
 The same example could also be written as:
 .Pp
-.Dl neomutt -F $(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
+.Dl neomutt -F $(@PACKAGE@ -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
 .Pp
 but in this case
 .Nm
 can not remove the
 .Xr mkstemp 3
-file since it never knows when neomutt exits. A better approach would be something like
+file since it will never know when neomutt exits. A better approach would be something like
 .Pp
 .Bd -literal -offset center
-CFG=$(tmpl -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
+CFG=$(@PACKAGE@ -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
 neomutt -F $CFG; rm -f $CFG
 .Ed
 .Pp
 or
 .Pp
-.Dl neomutt -F $(tmpl -d 5 -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
+.Dl neomutt -F $(@PACKAGE@ -d 5 -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
 .Pp
 will give neomutt 5 seconds (via
 .Fl d )
 to read the config from
 .Xr mkstemp 3
-file, which gets then deleted.
+file, which then gets deleted.
 .Pp
 Try the following example in your terminal:
 .Pp
-.Dl cat $(tmpl -p /bin/echo 'this is a test')
+.Dl cat $(@PACKAGE@ -p /bin/echo 'this is a test')
 .Pp
 or
-.Dl tmpl -r 'cat %f' -p /bin/echo 'this is still a test'
+.Dl @PACKAGE@ -r 'cat %f' -p /bin/echo 'this is still a test'
 .Pp
 This should give you a basic overview of what
 .Nm
 can do for you.
+.Sh FEATURES
+.Nm
+uses
+.Xr pledge 2
+if available.
 .Sh BUGS
 The parser for
 .Fl r
-is pretty bad so don't try to use any fancy shell syntax with quotes or other special chars. It might lead to unexpected behaviour. You should instead use a wrapper script.
+is pretty bad so don't try to use any fancy shell syntax with quotes or other special chars. It might lead to unexpected behaviour. You should use a wrapper script instead.
+.Pp
+Send bug reports to
+.Va @PACKAGE_BUGREPORT@ .
 .Sh SEE ALSO
 .Xr mkstemp 3
 .Sh AUTHORS

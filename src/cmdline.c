@@ -25,60 +25,30 @@
 
 #include "cmdline.h"
 
-const char *gengetopt_args_info_purpose = "Generates a temp file in mkstemp(3) format and writes output of PROGRAM to it.\nOptionally prints buffer to STDOUT instead of creating temp file.";
+const char *gengetopt_args_info_purpose = "Generates temp file via mkstemp(3) and writes output of PROGRAM to it.\nOptionally prints output to STDOUT instead of creating temp file.";
 
-const char *gengetopt_args_info_usage = "Usage: tmpl [-hV] [-f] [-e KEY=VALUE] [-p PROGRAM] [ -c | [-B] -r COMMAND\n[--stdout=FILE] [--stderr=FILE]] [--] ARGS";
+const char *gengetopt_args_info_usage = "Usage: tmpl [-hV] [-f] [-d SECONDS] [-e KEY=VALUE] [-p PROGRAM] [ -c | [-B] -r COMMAND\n[--stdout=FILE] [--stderr=FILE]] [--] ARGS";
 
 const char *gengetopt_args_info_versiontext = "This software is supplied WITHOUT ANY WARRANTY; without even the implied\nwarranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This is free\nsoftware, and you are welcome to redistribute it under certain conditions; see\nthe template COPYING for details.";
 
 const char *gengetopt_args_info_description = "";
 
-const char *gengetopt_args_info_detailed_help[] = {
+const char *gengetopt_args_info_help[] = {
   "  -h, --help             Print help and exit",
-  "      --detailed-help    Print help, including all details and hidden options,\n                           and exit",
   "  -V, --version          Print version and exit",
   "\n",
-  "  -f, --force            Force output generation  (default=off)",
+  "  -f, --force            Do not abort output generation if PROGRAM fails with\n                           ARGS  (default=off)",
   "  -e, --env=KEY=VALUE    Set environment variable KEY to VALUE prior to running\n                           PROGRAM or COMMAND",
   "  -d, --delete=SECONDS   Spawns new process which deletes temp file after\n                           SECONDS seconds",
-  "  -p, --program=PROGRAM  Run PROGRAM for each given FILE(S)\n                           (default=`/bin/sh')",
-  "  Example: tmpl -r \"neomutt -F %f\" -p \"erb -T-\" ~/.mutt.tmpl.erb",
-  "",
+  "  -p, --program=PROGRAM  Run PROGRAM for each given ARGS  (default=`/bin/sh')",
   "  -c, --cat              Print buffer to STDOUT and exit (does not write temp\n                           file)  (default=off)",
-  "",
-  "  -r, --run=COMMAND      Run COMMAND and delete temp file on exit",
-  "  Instead of returning the path, tmpl runs COMMAND\n  and deletes the temp file after COMMAND returns.\n  It then exits with the return code of COMMAND.\n\n  Example: tmpl -r \"neomutt -F %f\" ~/.mutt.tmpl.sh\n\n  Variables:\n          %f  - The generated temp file path",
+  "  -r, --run=COMMAND      Run COMMAND and delete temp file on exit.\n                           Example: tmpl -r \"neomutt -F %f\" ...\n                           %f - path to temp file",
   "  -B, --background       Fork to background when used with -r  (default=off)",
   "      --stdout=FILE      Redirect STDOUT from COMMAND to FILE",
   "      --stderr=FILE      Redirect STDERR from COMMAND to FILE",
-  "\nSee tmpl(1) for more informations and examples.\nSend bug reports to bugs+tmpl@hiddenbox.org",
+  "\nSee tmpl(1) for more informations and examples.\nSend bug reports to bugs+tmpl@hiddenbox.org\nVisit https://github.com/lotherk/tmpl",
     0
 };
-
-static void
-init_help_array(void)
-{
-  gengetopt_args_info_help[0] = gengetopt_args_info_detailed_help[0];
-  gengetopt_args_info_help[1] = gengetopt_args_info_detailed_help[1];
-  gengetopt_args_info_help[2] = gengetopt_args_info_detailed_help[2];
-  gengetopt_args_info_help[3] = gengetopt_args_info_detailed_help[3];
-  gengetopt_args_info_help[4] = gengetopt_args_info_detailed_help[4];
-  gengetopt_args_info_help[5] = gengetopt_args_info_detailed_help[5];
-  gengetopt_args_info_help[6] = gengetopt_args_info_detailed_help[6];
-  gengetopt_args_info_help[7] = gengetopt_args_info_detailed_help[7];
-  gengetopt_args_info_help[8] = gengetopt_args_info_detailed_help[9];
-  gengetopt_args_info_help[9] = gengetopt_args_info_detailed_help[10];
-  gengetopt_args_info_help[10] = gengetopt_args_info_detailed_help[11];
-  gengetopt_args_info_help[11] = gengetopt_args_info_detailed_help[12];
-  gengetopt_args_info_help[12] = gengetopt_args_info_detailed_help[14];
-  gengetopt_args_info_help[13] = gengetopt_args_info_detailed_help[15];
-  gengetopt_args_info_help[14] = gengetopt_args_info_detailed_help[16];
-  gengetopt_args_info_help[15] = gengetopt_args_info_detailed_help[17];
-  gengetopt_args_info_help[16] = 0; 
-  
-}
-
-const char *gengetopt_args_info_help[17];
 
 typedef enum {ARG_NO
   , ARG_FLAG
@@ -105,7 +75,6 @@ static
 void clear_given (struct gengetopt_args_info *args_info)
 {
   args_info->help_given = 0 ;
-  args_info->detailed_help_given = 0 ;
   args_info->version_given = 0 ;
   args_info->force_given = 0 ;
   args_info->env_given = 0 ;
@@ -143,21 +112,20 @@ static
 void init_args_info(struct gengetopt_args_info *args_info)
 {
 
-  init_help_array(); 
-  args_info->help_help = gengetopt_args_info_detailed_help[0] ;
-  args_info->detailed_help_help = gengetopt_args_info_detailed_help[1] ;
-  args_info->version_help = gengetopt_args_info_detailed_help[2] ;
-  args_info->force_help = gengetopt_args_info_detailed_help[4] ;
-  args_info->env_help = gengetopt_args_info_detailed_help[5] ;
+
+  args_info->help_help = gengetopt_args_info_help[0] ;
+  args_info->version_help = gengetopt_args_info_help[1] ;
+  args_info->force_help = gengetopt_args_info_help[3] ;
+  args_info->env_help = gengetopt_args_info_help[4] ;
   args_info->env_min = 0;
   args_info->env_max = 0;
-  args_info->delete_help = gengetopt_args_info_detailed_help[6] ;
-  args_info->program_help = gengetopt_args_info_detailed_help[7] ;
-  args_info->cat_help = gengetopt_args_info_detailed_help[10] ;
-  args_info->run_help = gengetopt_args_info_detailed_help[12] ;
-  args_info->background_help = gengetopt_args_info_detailed_help[14] ;
-  args_info->stdout_help = gengetopt_args_info_detailed_help[15] ;
-  args_info->stderr_help = gengetopt_args_info_detailed_help[16] ;
+  args_info->delete_help = gengetopt_args_info_help[5] ;
+  args_info->program_help = gengetopt_args_info_help[6] ;
+  args_info->cat_help = gengetopt_args_info_help[7] ;
+  args_info->run_help = gengetopt_args_info_help[8] ;
+  args_info->background_help = gengetopt_args_info_help[9] ;
+  args_info->stdout_help = gengetopt_args_info_help[10] ;
+  args_info->stderr_help = gengetopt_args_info_help[11] ;
   
 }
 
@@ -194,15 +162,6 @@ cmdline_parser_print_help (void)
   print_help_common();
   while (gengetopt_args_info_help[i])
     printf("%s\n", gengetopt_args_info_help[i++]);
-}
-
-void
-cmdline_parser_print_detailed_help (void)
-{
-  int i = 0;
-  print_help_common();
-  while (gengetopt_args_info_detailed_help[i])
-    printf("%s\n", gengetopt_args_info_detailed_help[i++]);
 }
 
 void
@@ -353,8 +312,6 @@ cmdline_parser_dump(FILE *outfile, struct gengetopt_args_info *args_info)
 
   if (args_info->help_given)
     write_into_file(outfile, "help", 0, 0 );
-  if (args_info->detailed_help_given)
-    write_into_file(outfile, "detailed-help", 0, 0 );
   if (args_info->version_given)
     write_into_file(outfile, "version", 0, 0 );
   if (args_info->force_given)
@@ -921,7 +878,6 @@ cmdline_parser_internal (
 
       static struct option long_options[] = {
         { "help",	0, NULL, 'h' },
-        { "detailed-help",	0, NULL, 0 },
         { "version",	0, NULL, 'V' },
         { "force",	0, NULL, 'f' },
         { "env",	1, NULL, 'e' },
@@ -951,7 +907,7 @@ cmdline_parser_internal (
           cmdline_parser_free (&local_args_info);
           exit (EXIT_SUCCESS);
 
-        case 'f':	/* Force output generation.  */
+        case 'f':	/* Do not abort output generation if PROGRAM fails with ARGS.  */
         
         
           if (update_arg((void *)&(args_info->force_flag), 0, &(args_info->force_given),
@@ -982,7 +938,7 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'p':	/* Run PROGRAM for each given FILE(S).  */
+        case 'p':	/* Run PROGRAM for each given ARGS.  */
         
         
           if (update_arg( (void *)&(args_info->program_arg), 
@@ -1004,7 +960,9 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'r':	/* Run COMMAND and delete temp file on exit.  */
+        case 'r':	/* Run COMMAND and delete temp file on exit.
+        Example: tmpl -r \"neomutt -F %f\" ...
+        %f - path to temp file.  */
         
         
           if (update_arg( (void *)&(args_info->run_arg), 
@@ -1028,12 +986,6 @@ cmdline_parser_internal (
           break;
 
         case 0:	/* Long option with no short option */
-          if (strcmp (long_options[option_index].name, "detailed-help") == 0) {
-            cmdline_parser_print_detailed_help ();
-            cmdline_parser_free (&local_args_info);
-            exit (EXIT_SUCCESS);
-          }
-
           /* Redirect STDOUT from COMMAND to FILE.  */
           if (strcmp (long_options[option_index].name, "stdout") == 0)
           {

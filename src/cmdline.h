@@ -38,10 +38,9 @@ extern "C" {
 struct gengetopt_args_info
 {
   const char *help_help; /**< @brief Print help and exit help description.  */
-  const char *detailed_help_help; /**< @brief Print help, including all details and hidden options, and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
-  int force_flag;	/**< @brief Force output generation (default=off).  */
-  const char *force_help; /**< @brief Force output generation help description.  */
+  int force_flag;	/**< @brief Do not abort output generation if PROGRAM fails with ARGS (default=off).  */
+  const char *force_help; /**< @brief Do not abort output generation if PROGRAM fails with ARGS help description.  */
   char ** env_arg;	/**< @brief Set environment variable KEY to VALUE prior to running PROGRAM or COMMAND.  */
   char ** env_orig;	/**< @brief Set environment variable KEY to VALUE prior to running PROGRAM or COMMAND original value given at command line.  */
   unsigned int env_min; /**< @brief Set environment variable KEY to VALUE prior to running PROGRAM or COMMAND's minimum occurreces */
@@ -50,14 +49,20 @@ struct gengetopt_args_info
   float delete_arg;	/**< @brief Spawns new process which deletes temp file after SECONDS seconds.  */
   char * delete_orig;	/**< @brief Spawns new process which deletes temp file after SECONDS seconds original value given at command line.  */
   const char *delete_help; /**< @brief Spawns new process which deletes temp file after SECONDS seconds help description.  */
-  char * program_arg;	/**< @brief Run PROGRAM for each given FILE(S) (default='/bin/sh').  */
-  char * program_orig;	/**< @brief Run PROGRAM for each given FILE(S) original value given at command line.  */
-  const char *program_help; /**< @brief Run PROGRAM for each given FILE(S) help description.  */
+  char * program_arg;	/**< @brief Run PROGRAM for each given ARGS (default='/bin/sh').  */
+  char * program_orig;	/**< @brief Run PROGRAM for each given ARGS original value given at command line.  */
+  const char *program_help; /**< @brief Run PROGRAM for each given ARGS help description.  */
   int cat_flag;	/**< @brief Print buffer to STDOUT and exit (does not write temp file) (default=off).  */
   const char *cat_help; /**< @brief Print buffer to STDOUT and exit (does not write temp file) help description.  */
-  char * run_arg;	/**< @brief Run COMMAND and delete temp file on exit.  */
-  char * run_orig;	/**< @brief Run COMMAND and delete temp file on exit original value given at command line.  */
-  const char *run_help; /**< @brief Run COMMAND and delete temp file on exit help description.  */
+  char * run_arg;	/**< @brief Run COMMAND and delete temp file on exit.
+  Example: tmpl -r \"neomutt -F %f\" ...
+  %f - path to temp file.  */
+  char * run_orig;	/**< @brief Run COMMAND and delete temp file on exit.
+  Example: tmpl -r \"neomutt -F %f\" ...
+  %f - path to temp file original value given at command line.  */
+  const char *run_help; /**< @brief Run COMMAND and delete temp file on exit.
+  Example: tmpl -r \"neomutt -F %f\" ...
+  %f - path to temp file help description.  */
   int background_flag;	/**< @brief Fork to background when used with -r (default=off).  */
   const char *background_help; /**< @brief Fork to background when used with -r help description.  */
   char * stdout_arg;	/**< @brief Redirect STDOUT from COMMAND to FILE.  */
@@ -68,7 +73,6 @@ struct gengetopt_args_info
   const char *stderr_help; /**< @brief Redirect STDERR from COMMAND to FILE help description.  */
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
-  unsigned int detailed_help_given ;	/**< @brief Whether detailed-help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int force_given ;	/**< @brief Whether force was given.  */
   unsigned int env_given ;	/**< @brief Whether env was given.  */
@@ -102,8 +106,6 @@ extern const char *gengetopt_args_info_usage;
 extern const char *gengetopt_args_info_description;
 /** @brief all the lines making the help output */
 extern const char *gengetopt_args_info_help[];
-/** @brief all the lines making the detailed help output (including hidden options and details) */
-extern const char *gengetopt_args_info_detailed_help[];
 
 /**
  * The command line parser
@@ -165,10 +167,6 @@ int cmdline_parser_file_save(const char *filename,
  * Print the help
  */
 void cmdline_parser_print_help(void);
-/**
- * Print the detailed help (including hidden options and details)
- */
-void cmdline_parser_print_detailed_help(void);
 /**
  * Print the version
  */

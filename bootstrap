@@ -62,11 +62,13 @@ fi
 
 # Check for autoconf
 acvers="no"
-for v in "" "259" "253"; do
-  if autoconf${v} --version >/dev/null 2>&1; then
-    acvers="${v}"
+for v in "2.69"; do
+  export AUTOCONF_VERSION="${v}"
+  if autoconf-${v} --version >/dev/null 2>&1; then
+    acvers="-${v}"
     break
   fi
+  unset AUTOCONF_VERSION
 done
 
 if test "$acvers" = "no"; then
