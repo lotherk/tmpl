@@ -73,7 +73,7 @@ DESCRIPTION
      Alternativley, when used with -c, prints generated output to STDOUT and
      does not create and return a mkstemp(3) file.  mkstemp(3) files are
      created with mode 0600 and set to 0400 via fchmod(2) after writing
-     STDOUT.
+     STDOUT. The string /tmp/.tmpl-XXXXXXXXXX is used for mkstemp(3).
 
      This utility is especially useful if you need to dynamically create
      configuration files for programs.
@@ -229,3 +229,119 @@ OpenBSD 6.3			 May 28, 2018			   OpenBSD 6.3
                     -p "pass file cat" \
                     "VPN/mysecurevpnconfig"
 ```
+
+### VIM autocreate file from `erb` template
+Add the following to your `~/.vimrc`
+```
+autocmd BufNewFile * :read !tmpl -c -e AFILE=<afile> -p "erb -T-" ~/.tmpl/code.erb
+```
+
+Content for `~/.tmpl/code.erb`
+```
+<%
+path = ENV['HOME'] + "/.tmpl/code/"
+file = ENV['AFILE']
+suffix = File.basename(file).split(".").last
+template = File.join(path, suffix + ".erb")
+
+if !File.exist?(template)
+  exit(0)
+end
+-%>
+<%= ERB.new(File.read(template), nil, '-', '_sub01').result(binding) -%>
+```
+
+`code.erb` will search in `~/.tmpl/code/` for files in the format of `SUFFIX.erb`.
+
+I use this `c.erb` to automatically create *.c files:
+```
+/* <%= File.basename(file) -%>: ADD DESCRIPTION HERE
+ *
+ * Copyright (C) <%= Time.now.year -%>
+ *	<%=  %x(git config user.name).rstrip -%> <<%= %x(git config user.email).rstrip -%>>
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+```
+And `h.erb`:
+```
+/* <%= File.basename(file) -%>: ADD DESCRIPTION HERE
+ *
+ * Copyright (C) <%= Time.now.year -%>
+ *	<%=  %x(git config user.name).rstrip -%> <<%= %x(git config user.email).rstrip -%>>
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+/**
+ * @brief	Add brief description!
+ *
+ * More detailed description
+ *
+ * @date	<%= Time.now.strftime('%m/%d/%Y') %>
+ * @file	<%= File.basename(file) %>
+ * @author	<%= %x(git config user.name).rstrip %>
+ */
+
+<%
+	header_name = File.basename(file).gsub(/\./, '_')
+	header_name = header_name.upcase
+-%>
+#ifndef <%= header_name %>
+#define <%= header_name %>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// START HERE
+
+#ifdef __cplusplus
+}
+#endif
+#endif
+```
+
