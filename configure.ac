@@ -4,7 +4,6 @@
 AC_PREREQ([2.69])
 AC_INIT(tmpl, 0.1, bugs+tmpl@hiddenbox.org)
 AM_INIT_AUTOMAKE([subdir-objects no-dependencies])
-LT_INIT
 
 AC_LANG([C])
 

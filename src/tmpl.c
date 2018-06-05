@@ -38,7 +38,7 @@
 #include <unistd.h>
 #include "cmdline.h"
 
-#ifdef __OpenBSD__
+#if defined(HAVE_SYS_FILIO_H)
 #include <sys/filio.h>
 #endif
 
