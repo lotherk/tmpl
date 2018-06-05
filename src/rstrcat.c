@@ -54,9 +54,7 @@ int rstrcat(char **dst, char *src)
     if (p == NULL)
         return -1;
 
-    if (dst_s > 0)
-        memcpy(p, *dst, dst_s);
-
+    memcpy(p, *dst, dst_s);
     memcpy(p+dst_s, src, src_s);
     *dst = p;
 
@@ -79,13 +77,10 @@ int vfrstrcat(char **dst, char *fmt, va_list args)
 {
     int size = 0;
     char *str;
-
     va_list tmp;
 
     va_copy(tmp, args);
-
     size = vsnprintf(NULL, size, fmt, tmp);
-
     va_end(tmp);
 
     if (size < 0)
@@ -99,12 +94,10 @@ int vfrstrcat(char **dst, char *fmt, va_list args)
     }
 
     size = rstrcat(dst, str);
-
     if (size < 0) {
         free(str);
         return -1;
     }
-
     free(str);
 
     return size;

@@ -34,7 +34,7 @@ AC_FUNC_FORK
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_STRTOD
-AC_CHECK_FUNCS([pledge atexit dup2 setenv strchr strdup asprintf])
+AC_CHECK_FUNCS([pledge atexit dup2 setenv strchr strdup])
 
 
 AC_OUTPUT(Makefile src/Makefile man/Makefile)

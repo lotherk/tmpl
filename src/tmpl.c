@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     run_command_exit_code = 0;
 
 #ifdef HAVE_PLEDGE
-    if (pledge("error stdio fattr proc exec tmppath", NULL) == -1) {
+    if (pledge("error stdio fattr proc exec tmppath rpath cpath wpath", NULL) == -1) {
         perror("pledge");
         exit(EXIT_FAILURE);
     }
@@ -126,7 +126,6 @@ int main(int argc, char **argv)
             perror("run_command");
             exit(EXIT_FAILURE);
         }
-
         if ((r = unlink(mkstemp_template)) != 0)
             perror("unlink mkstemp_template");
 
@@ -315,6 +314,13 @@ static void run_command_child()
     size_t abuf_i = 0;
     int i;
 
+#ifdef HAVE_PLEDGE
+    if (pledge("error stdio exec proc rpath", NULL) == -1) {
+        perror("pledge");
+        exit(EXIT_FAILURE);
+    }
+#endif
+
     command = args.run_arg;
 
 
@@ -356,7 +362,6 @@ static void run_command_child()
         }
 
     arguments[arguments_i] = NULL;
-
     execvp(program, arguments);
     perror("execvp");
     exit(EXIT_FAILURE);
@@ -368,7 +373,7 @@ static int run_command()
     FILE *cstdin, *cstdout, *cstderr;
 
     pid_t pid;
-    int status;
+    int status, r;
 
     FILE *redir_stdout = stdout;
     FILE *redir_stderr = stderr;
@@ -378,8 +383,8 @@ static int run_command()
     pipe(stdout_pipe);
     pipe(stderr_pipe);
 
+    status = 0;
     pid = fork();
-
     if (pid == 0) {
         close(stdin_pipe[1]);
         close(stdout_pipe[0]);
@@ -390,6 +395,8 @@ static int run_command()
         dup2(stderr_pipe[1], STDERR_FILENO);
 
         run_command_child();
+        perror("run_command_child");
+        exit(EXIT_FAILURE);
 
     } else if (pid < 0) {
         return 1;
@@ -432,21 +439,22 @@ static int run_command()
         int i;
         size_t s;
 
-        do {
-            if (ioctl(stderr_pipe[0], FIONREAD, &s) == 0 && s > 0)
-                for ( i = 0; i < s; i ++)
+        while(1) {
+            if (ioctl(stderr_pipe[0], FIONREAD, &s) == 0 && s > 0) {
+                for ( i = 0; i < s; i++)
                     fputc(fgetc(cstderr), redir_stderr);
-
-            if (ioctl(stdout_pipe[0], FIONREAD, &s) == 0 && s > 0)
-                for ( i = 0; i < s; i ++)
+                fflush(redir_stderr);
+            }
+            if (ioctl(stdout_pipe[0], FIONREAD, &s) == 0 && s > 0) {
+                for ( i = 0; i < s; i++)
                     fputc(fgetc(cstdout), redir_stdout);
+                fflush(redir_stdout);
+            }
+            r = waitpid(pid, &status, WNOHANG);
 
-            waitpid(pid, &status, WNOHANG);
-            if (WIFEXITED(status))
+            if (WIFEXITED(status) && r != 0)
                 break;
-
-            sleep(1);
-        } while (1);
+        }
 
         fflush(cstdout);
         fflush(cstderr);
@@ -459,7 +467,6 @@ static int run_command()
 
         if (redir_stdout != stdout)
             fclose(redir_stdout);
-
         if (! WIFEXITED(status))
             return 1;
 
