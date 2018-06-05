@@ -2,6 +2,19 @@
 
 **tmpl** - Generates [mkstemp(3)](https://man.openbsd.org/mkstemp) file and writes output of `PROGRAM` to it
 
+## Build
+
+### compile
+```
+# ./bootstrap
+# ./configure ...
+# make
+```
+
+### install
+```
+# sudo make install
+```
 ## Help
 ```
 tmpl 0.1 Copyright (C) 2018 Konrad Lother <k@hiddenbox.org>
@@ -203,4 +216,12 @@ AUTHORS
 
 OpenBSD 6.3			 May 28, 2018			   OpenBSD 6.3
 
+```
+
+
+## Examples
+
+### OpenVPN with config stored in `pass file` (See [lukrop/pass-file](https://github.com/lukrop/pass-file) for pass file plugin)
+```
+# tmpl -r "openvpn --config %f" --stdout /var/log/tmpl.openvpn.log -p "pass file cat" "VPN/mysecurevpnconfig"
 ```
