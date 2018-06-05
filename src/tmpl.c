@@ -70,9 +70,7 @@ int main(int argc, char **argv)
     pid_t pid;
 
     mkstemp_template = NULL;
-
     template_buffer = NULL;
-
     run_command_exit_code = 0;
 
 #ifdef HAVE_PLEDGE
@@ -128,7 +126,6 @@ int main(int argc, char **argv)
         exit(run_command_exit_code);
     }
 
-
     if (args.delete_given) {
         pid = fork();
 
@@ -161,7 +158,6 @@ static int arg_init(int argc, char **argv)
 
     if((r = cmdline_parser(argc, argv, &args)) != 0)
         return 1;
-
 
     if (!args.run_given &&
             (args.stdout_given || args.stderr_given || args.background_flag)) {
@@ -196,7 +192,6 @@ static void atexit_hook()
 
     if (mkstemp_template != NULL)
         free(mkstemp_template);
-
 }
 
 static int run_program(const char *arg)
@@ -311,8 +306,6 @@ static void run_command_child()
 #endif
 
     command = args.run_arg;
-
-
     arg = NULL;
     program = strtok_r(command, delim, &arg);
 
@@ -359,13 +352,10 @@ static int run_command()
 
     int stdin_pipe[2], stdout_pipe[2], stderr_pipe[2];
     FILE *cstdin, *cstdout, *cstderr;
-
     pid_t pid;
     int status, r;
-
     FILE *redir_stdout = stdout;
     FILE *redir_stderr = stderr;
-
 
     pipe(stdin_pipe);
     pipe(stdout_pipe);
