@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     run_command_exit_code = 0;
 
 #ifdef HAVE_PLEDGE
-    if (pledge("error stdio fattr proc exec tmppath rpath cpath wpath", NULL) == -1) {
+    if (pledge("error stdio fattr proc exec tmppath", NULL) == -1) {
         perror("pledge");
         exit(EXIT_FAILURE);
     }
