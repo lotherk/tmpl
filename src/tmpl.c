@@ -61,7 +61,8 @@ int main(int argc, char **argv)
     pid_t pid;
     char *tmp;
 
-    mkstemp_template = NULL;
+    mkstemp_template = strdup("/tmp/.tmpl-XXXXXXXXXX");
+
     template_buffer = NULL;
 
     run_command_exit_code = 0;
@@ -291,7 +292,6 @@ static int write_mkstemp()
 {
     int fd, r;
     size_t size;
-    mkstemp_template = strdup(args.mkstemp_template_arg);
     if (mkstemp_template == NULL)
         return 1;
 

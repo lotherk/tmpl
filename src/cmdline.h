@@ -39,13 +39,9 @@ struct gengetopt_args_info
 {
   const char *help_help; /**< @brief Print help and exit help description.  */
   const char *detailed_help_help; /**< @brief Print help, including all details and hidden options, and exit help description.  */
-  const char *full_help_help; /**< @brief Print help, including hidden options, and exit help description.  */
   const char *version_help; /**< @brief Print version and exit help description.  */
   int force_flag;	/**< @brief Force output generation (default=off).  */
   const char *force_help; /**< @brief Force output generation help description.  */
-  char * mkstemp_template_arg;	/**< @brief Set mkstemp(3) template (default='/tmp/.tmpl-XXXXXXXXXX').  */
-  char * mkstemp_template_orig;	/**< @brief Set mkstemp(3) template original value given at command line.  */
-  const char *mkstemp_template_help; /**< @brief Set mkstemp(3) template help description.  */
   char ** env_arg;	/**< @brief Set environment variable KEY to VALUE prior to running PROGRAM or COMMAND.  */
   char ** env_orig;	/**< @brief Set environment variable KEY to VALUE prior to running PROGRAM or COMMAND original value given at command line.  */
   unsigned int env_min; /**< @brief Set environment variable KEY to VALUE prior to running PROGRAM or COMMAND's minimum occurreces */
@@ -73,10 +69,8 @@ struct gengetopt_args_info
   
   unsigned int help_given ;	/**< @brief Whether help was given.  */
   unsigned int detailed_help_given ;	/**< @brief Whether detailed-help was given.  */
-  unsigned int full_help_given ;	/**< @brief Whether full-help was given.  */
   unsigned int version_given ;	/**< @brief Whether version was given.  */
   unsigned int force_given ;	/**< @brief Whether force was given.  */
-  unsigned int mkstemp_template_given ;	/**< @brief Whether mkstemp-template was given.  */
   unsigned int env_given ;	/**< @brief Whether env was given.  */
   unsigned int delete_given ;	/**< @brief Whether delete was given.  */
   unsigned int program_given ;	/**< @brief Whether program was given.  */
@@ -108,8 +102,6 @@ extern const char *gengetopt_args_info_usage;
 extern const char *gengetopt_args_info_description;
 /** @brief all the lines making the help output */
 extern const char *gengetopt_args_info_help[];
-/** @brief all the lines making the full help output (including hidden options) */
-extern const char *gengetopt_args_info_full_help[];
 /** @brief all the lines making the detailed help output (including hidden options and details) */
 extern const char *gengetopt_args_info_detailed_help[];
 
@@ -173,10 +165,6 @@ int cmdline_parser_file_save(const char *filename,
  * Print the help
  */
 void cmdline_parser_print_help(void);
-/**
- * Print the full help (including hidden options)
- */
-void cmdline_parser_print_full_help(void);
 /**
  * Print the detailed help (including hidden options and details)
  */
