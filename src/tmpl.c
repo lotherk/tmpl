@@ -28,6 +28,8 @@
  * SUCH DAMAGE.
  */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,7 +46,10 @@
 #include <sys/filio.h>
 #endif
 
-#include "config.h"
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+
 #include "cmdline.h"
 #include "rstrcat.h"
 

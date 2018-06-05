@@ -23,7 +23,24 @@ AC_PROG_MAKE_SET
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([err.h limits.h stdlib.h string.h sys/ioctl.h unistd.h sys/filio.h])
+AC_CHECK_HEADERS([\
+                  sys/filio.h \
+                  sys/select.h \
+                  ])
+
+AC_CHECK_HEADERS([\
+                  err.h \
+                  limits.h \
+                  stdio.h \
+                  stdlib.h \
+                  string.h \
+                  sys/ioctl.h \
+                  sys/stat.h \
+                  sys/wait.h \
+                  time.h \
+                  unistd.h \
+                  ], [],
+[AC_MSG_ERROR(["*** error: missing header file ***"])])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T
@@ -34,8 +51,24 @@ AC_FUNC_FORK
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_STRTOD
-AC_CHECK_FUNCS([pledge atexit dup2 setenv strchr strdup err warn])
+AC_CHECK_FUNCS([\
+                pledge \
+                ])
 
+AC_CHECK_FUNCS([\
+                atexit \
+                dup2 \
+                setenv \
+                strchr \
+                strdup \
+                err \
+                warn \
+                nanosleep \
+                fchmod \
+                ], [],
+[AC_MSG_ERROR(["*** error: missing function ***"])])
+
+AC_CHECK_MEMBERS([struct timespec.tv_sec, struct timespec.tv_nsec])
 
 AC_OUTPUT(Makefile src/Makefile man/Makefile)
 
