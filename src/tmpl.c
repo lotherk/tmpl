@@ -36,18 +36,14 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
+#include <sys/select.h>
 #include <limits.h>
 #include <unistd.h>
-#include <time.h>
 #include <err.h>
 
 
 #ifdef HAVE_SYS_FILIO_H
 #include <sys/filio.h>
-#endif
-
-#ifdef HAVE_SYS_SELECT_H
-#include <sys/select.h>
 #endif
 
 #include "cmdline.h"

@@ -30,7 +30,6 @@ AC_PROG_MAKE_SET
 # Checks for header files.
 AC_CHECK_HEADERS([\
                   sys/filio.h \
-                  sys/select.h \
                   ])
 
 AC_CHECK_HEADERS([\
@@ -40,9 +39,9 @@ AC_CHECK_HEADERS([\
                   stdlib.h \
                   string.h \
                   sys/ioctl.h \
+                  sys/select.h \
                   sys/stat.h \
                   sys/wait.h \
-                  time.h \
                   unistd.h \
                   ], [],
 [AC_MSG_ERROR(["*** error: missing header file ***"])])
@@ -68,7 +67,6 @@ AC_CHECK_FUNCS([\
                 strdup \
                 err \
                 warn \
-                nanosleep \
                 fchmod \
                 ], [],
 [AC_MSG_ERROR(["*** error: missing function ***"])])
