@@ -37,6 +37,8 @@
 #include <limits.h>
 #include <unistd.h>
 #include <time.h>
+#include <err.h>
+
 
 #ifdef HAVE_SYS_FILIO_H
 #include <sys/filio.h>
@@ -69,10 +71,8 @@ int main(int argc, char **argv)
     run_command_exit_code = 0;
 
 #ifdef HAVE_PLEDGE
-    if (pledge("error stdio fattr proc exec tmppath", NULL) == -1) {
-        perror("pledge");
-        exit(EXIT_FAILURE);
-    }
+    if (pledge("error stdio fattr proc exec tmppath rpath wpath cpath", NULL) == -1)
+        err(1, "pledge");
 #endif
 
     atexit(atexit_hook);
@@ -80,16 +80,13 @@ int main(int argc, char **argv)
     if ((r = arg_init(argc, argv)) != 0)
         exit(EXIT_FAILURE);
 
-    if (args.background_flag) {
-        if ((r = daemon(0, 0)) != 0) {
-            perror("daemonize");
-            exit(EXIT_FAILURE);
-        }
-    }
+    if (args.background_flag)
+        if ((r = daemon(0, 0)) != 0)
+            err(1, "daemonize");
+
 
     if((r = set_environment()) != 0) {
-        perror("set_environment");
-        exit(EXIT_FAILURE);
+        err(1, "set_environment");
     }
 
     if (args.inputs_num == 1)
@@ -98,17 +95,14 @@ int main(int argc, char **argv)
         for (i = 0; i < args.inputs_num; i++) {
             r = run_program(args.inputs[i]);
 
-            if (r != 0 && !args.force_flag) {
-                perror("run_program");
-                exit(EXIT_FAILURE);
-            }
+            if (r != 0 && !args.force_flag)
+               err(1, "run_program");
         }
     else
         r = run_program(NULL);
 
     if (r != 0 && !args.force_flag) {
-        perror("run_program");
-        exit(EXIT_FAILURE);
+        err(1, "run_program");
     }
 
     if (args.cat_flag) {
@@ -117,18 +111,14 @@ int main(int argc, char **argv)
         exit(EXIT_SUCCESS);
     }
 
-    if ((r = write_mkstemp()) != 0) {
-        perror("write_mkstemp");
-        exit(EXIT_FAILURE);
-    }
+    if ((r = write_mkstemp()) != 0)
+        err(1, "write_mkstemp");
 
     if (args.run_given) {
-        if ((r = run_command()) != 0) {
-            perror("run_command");
-            exit(EXIT_FAILURE);
-        }
+        if ((r = run_command()) != 0)
+            err(1, "run_command");
         if ((r = unlink(mkstemp_template)) != 0)
-            perror("unlink mkstemp_template");
+            warn("unlink mkstemp_template");
 
         exit(run_command_exit_code);
     }
@@ -139,22 +129,19 @@ int main(int argc, char **argv)
 
         if (pid == 0) {
             if((r = daemon(0, 0)) == -1) {
-                perror("delete daemon");
-                exit(EXIT_FAILURE);
+                err(1, "delete daemon");
             }
 
 #ifdef HAVE_PLEDGE
             if (pledge("stdio tmppath", NULL) == -1) {
-                perror("pledge");
-                exit(EXIT_FAILURE);
+                err(1, "pledge");
             }
 #endif
             sleep(args.delete_arg);
             r = unlink(mkstemp_template);
             exit(EXIT_SUCCESS);
         } else if (pid < 0) {
-            perror("fork for delete");
-            exit(EXIT_FAILURE);
+            err(1, "fork for delete");
         }
     }
 
@@ -173,9 +160,7 @@ static int arg_init(int argc, char **argv)
 
     if (!args.run_given &&
             (args.stdout_given || args.stderr_given || args.background_flag)) {
-        fprintf(stderr, "tmpl: -r required, see --help\n");
-        fflush(stderr);
-        exit(EXIT_FAILURE);
+        errx(1, "-r required, see --help\n");
     }
 
     return 0;
@@ -316,10 +301,8 @@ static void run_command_child()
     int i;
 
 #ifdef HAVE_PLEDGE
-    if (pledge("exec", NULL) == -1) {
-        perror("pledge");
-        exit(EXIT_FAILURE);
-    }
+    if (pledge("exec", NULL) == -1)
+        err(1, "pledge");
 #endif
 
     command = args.run_arg;
@@ -364,7 +347,7 @@ static void run_command_child()
 
     arguments[arguments_i] = NULL;
     execvp(program, arguments);
-    exit(EXIT_FAILURE);
+    err(1, NULL);
 }
 static int run_command()
 {
@@ -395,8 +378,7 @@ static int run_command()
         dup2(stderr_pipe[1], STDERR_FILENO);
 
         run_command_child();
-        perror("run_command_child");
-        exit(EXIT_FAILURE);
+        err(1, "run_command_child");
 
     } else if (pid < 0) {
         return 1;
@@ -460,17 +442,17 @@ static int run_command()
                     break;
 
                 if (WIFSIGNALED(status)) {
-                    perror("child received unhandled signal");
+                    warn("child received unhandled signal");
                     break;
                 }
 
                 if (WCOREDUMP(status)) {
-                    perror("child core dumped");
+                    warn("child core dumped");
                     break;
                 }
 
                 if (WIFSTOPPED(status)) {
-                    perror("child is stopped");
+                    warn("child is stopped");
                     break;
                 }
             }
@@ -491,8 +473,6 @@ static int run_command()
 
         if (redir_stdout != stdout)
             fclose(redir_stdout);
-        if (! WIFEXITED(status))
-            return 1;
 
         run_command_exit_code = WEXITSTATUS(status);
         return 0;

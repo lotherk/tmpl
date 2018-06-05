@@ -23,7 +23,7 @@ AC_PROG_MAKE_SET
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([limits.h stdlib.h string.h sys/ioctl.h unistd.h sys/filio.h])
+AC_CHECK_HEADERS([err.h limits.h stdlib.h string.h sys/ioctl.h unistd.h sys/filio.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T
@@ -34,7 +34,7 @@ AC_FUNC_FORK
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_STRTOD
-AC_CHECK_FUNCS([pledge atexit dup2 setenv strchr strdup])
+AC_CHECK_FUNCS([pledge atexit dup2 setenv strchr strdup err warn])
 
 
 AC_OUTPUT(Makefile src/Makefile man/Makefile)
