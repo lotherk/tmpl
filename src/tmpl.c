@@ -43,6 +43,7 @@
 
 #include "config.h"
 #include "cmdline.h"
+#include "rstrcat.h"
 
 static char *mkstemp_template, *template_buffer;
 static struct gengetopt_args_info args;
@@ -59,7 +60,6 @@ int main(int argc, char **argv)
 {
     int r, i;
     pid_t pid;
-    char *tmp;
 
     mkstemp_template = NULL;
 
@@ -90,13 +90,6 @@ int main(int argc, char **argv)
         perror("set_environment");
         exit(EXIT_FAILURE);
     }
-
-    tmp = template_buffer;
-    if((r = asprintf(&template_buffer, "%c", '\0')) == -1) {
-        perror("template_buffer");
-        exit(EXIT_FAILURE);
-    }
-    free(tmp);
 
     if (args.inputs_num == 1)
         r = run_program(args.inputs[0]);
@@ -223,30 +216,20 @@ static int run_program(const char *arg)
     char line[PATH_MAX];
     FILE *fp;
 
-
-    buf = calloc(1, sizeof(char));
-    if (buf == NULL) {
-        return 1;
-    }
+    path = NULL;
+    buf = NULL;
 
     if (arg == NULL) {
         path = strdup(args.program_arg);
     } else {
-        path = calloc(1, sizeof(char));
-        if (path == NULL) {
-            free(buf);
-            return 1;
-        }
-
         tmp = path;
-        r = asprintf(&path, "%s %s", args.program_arg, arg);
-        free(tmp);
-
+        r = frstrcat(&path, "%s %s", args.program_arg, arg);
         if (r == -1) {
             free(buf);
             free(path);
             return 1;
         }
+        free(tmp);
     }
 
     fp = popen(path, "r");
@@ -258,13 +241,13 @@ static int run_program(const char *arg)
 
     while (fgets(line, PATH_MAX, fp) != NULL) {
         tmp = buf;
-        r = asprintf(&buf, "%s%s", buf, line);
-        free(tmp);
-
+        r = rstrcat(&buf, line);
         if (r == -1) {
+            free(tmp);
             free(path);
             return 1;
         }
+        free(tmp);
     }
 
     r = pclose(fp);
@@ -280,12 +263,17 @@ static int run_program(const char *arg)
     }
 
     tmp = template_buffer;
-    r = asprintf(&template_buffer, "%s%s", template_buffer, buf);
+    r = rstrcat(&template_buffer, buf);
+    if (r == -1) {
+        template_buffer = tmp;
+        tmp = NULL;
+        free(buf);
+        return 1;
+    }
     free(tmp);
-
     free(buf);
 
-    return r != -1  ? 0 : 1;
+    return 0;
 }
 
 static int write_mkstemp()

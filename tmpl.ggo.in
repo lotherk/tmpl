@@ -3,7 +3,7 @@ version "@VERSION@ @COPYRIGHT_NOTICE@"
 
 purpose "Generates temp file via mkstemp(3) and writes output of PROGRAM to it. Optionally prints output to STDOUT instead of creating temp file."
 
-usage "tmpl [-hV] [-f] [-d SECONDS] [-e KEY=VALUE] [-p PROGRAM] [ -c | [-B] -r COMMAND [--stdout=FILE] [--stderr=FILE]] [--] ARGS"
+usage "@PACKAGE@ [-hV] [-f] [-d SECONDS] [-e KEY=VALUE] [-p PROGRAM] [ -c | [-B] -r COMMAND [--stdout=FILE] [--stderr=FILE]] [--] ARGS"
 
 versiontext "This software is supplied WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This is free software, and you are welcome to redistribute it under certain conditions; see the template COPYING for details."
 
@@ -23,11 +23,11 @@ option "delete" d "Spawns new process which deletes temp file after SECONDS seco
 option "program" p "Run PROGRAM for each given ARGS"
         string typestr="PROGRAM" default="/bin/sh" optional
 
-option "cat" c "Print buffer to STDOUT and exit (does not write temp file)"
+option "cat" c "Print output to STDOUT and exit (does not write temp file)"
         flag off
 
 option "run" r "Run COMMAND and delete temp file on exit.
-Example: tmpl -r \"neomutt -F %f\" ...
+Example: @PACKAGE@ -r \"neomutt -F %f\" ...
 %f - path to temp file"
         string typestr="COMMAND" optional
 
@@ -41,6 +41,6 @@ option "stderr" - "Redirect STDERR from COMMAND to FILE"
         string typestr="FILE" optional
 
 text "
-See tmpl(1) for more informations and examples.
+See @PACKAGE@(1) for more informations and examples.
 Send bug reports to @PACKAGE_BUGREPORT@
 Visit @PACKAGE_URL@"
