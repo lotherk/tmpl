@@ -3,19 +3,33 @@
 
 AC_PREREQ([2.69])
 AC_INIT(tmpl, 0.1, bugs+tmpl@hiddenbox.org)
-AM_INIT_AUTOMAKE(tmpl, 0.1)
+AM_INIT_AUTOMAKE([subdir-objects no-dependencies])
+LT_INIT
+
+AC_LANG([C])
+
 AC_CONFIG_SRCDIR([src/tmpl.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([tmpl.ggo man/tmpl.1])
 
 # Checks for programs.
-AC_PROG_CC
+AC_PROG_CC([clang cc gcc])
+AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 # Checks for libraries.
 
+AC_CANONICAL_HOST
+
+AC_PATH_PROG([GENGETOPT], [gengetopt])
+
+if test -z "$GENGETOPT"; then
+    AC_MSG_ERROR([*** 'gengetopt' missing, please install or fix your \$PATH ***])
+fi
+
+
 # Checks for header files.
-AC_CHECK_HEADERS([limits.h stdlib.h string.h sys/ioctl.h unistd.h])
+AC_CHECK_HEADERS([limits.h stdlib.h string.h sys/ioctl.h unistd.h sys/filio.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_PID_T
@@ -30,3 +44,4 @@ AC_CHECK_FUNCS([pledge atexit dup2 setenv strchr strdup])
 
 
 AC_OUTPUT(Makefile src/Makefile man/Makefile)
+

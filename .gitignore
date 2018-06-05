@@ -24,5 +24,6 @@ stamp-*
 **.o
 Makefile
 **/Makefile
+**/Makefile.in
 **.1
 *.log
