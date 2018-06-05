@@ -52,8 +52,8 @@ struct gengetopt_args_info
   char * program_arg;	/**< @brief Run PROGRAM for each given ARGS (default='/bin/sh').  */
   char * program_orig;	/**< @brief Run PROGRAM for each given ARGS original value given at command line.  */
   const char *program_help; /**< @brief Run PROGRAM for each given ARGS help description.  */
-  int cat_flag;	/**< @brief Print buffer to STDOUT and exit (does not write temp file) (default=off).  */
-  const char *cat_help; /**< @brief Print buffer to STDOUT and exit (does not write temp file) help description.  */
+  int cat_flag;	/**< @brief Print output to STDOUT and exit (does not write temp file) (default=off).  */
+  const char *cat_help; /**< @brief Print output to STDOUT and exit (does not write temp file) help description.  */
   char * run_arg;	/**< @brief Run COMMAND and delete temp file on exit.
   Example: tmpl -r \"neomutt -F %f\" ...
   %f - path to temp file.  */

@@ -41,7 +41,7 @@ const char *gengetopt_args_info_help[] = {
   "  -e, --env=KEY=VALUE    Set environment variable KEY to VALUE prior to running\n                           PROGRAM or COMMAND",
   "  -d, --delete=SECONDS   Spawns new process which deletes temp file after\n                           SECONDS seconds",
   "  -p, --program=PROGRAM  Run PROGRAM for each given ARGS  (default=`/bin/sh')",
-  "  -c, --cat              Print buffer to STDOUT and exit (does not write temp\n                           file)  (default=off)",
+  "  -c, --cat              Print output to STDOUT and exit (does not write temp\n                           file)  (default=off)",
   "  -r, --run=COMMAND      Run COMMAND and delete temp file on exit.\n                           Example: tmpl -r \"neomutt -F %f\" ...\n                           %f - path to temp file",
   "  -B, --background       Fork to background when used with -r  (default=off)",
   "      --stdout=FILE      Redirect STDOUT from COMMAND to FILE",
@@ -950,7 +950,7 @@ cmdline_parser_internal (
             goto failure;
         
           break;
-        case 'c':	/* Print buffer to STDOUT and exit (does not write temp file).  */
+        case 'c':	/* Print output to STDOUT and exit (does not write temp file).  */
         
         
           if (update_arg((void *)&(args_info->cat_flag), 0, &(args_info->cat_given),
