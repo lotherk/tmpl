@@ -1,6 +1,6 @@
 # tmpl
 
-**tmpl** is a small utility tool which creates [mkstemp(3)](https://man.openbsd.org/mkstemp)
+**tmpl** - Generates [mkstemp(3)](https://man.openbsd.org/mkstemp) file and writes output of `PROGRAM` to it
 
 ## Help
 ```
@@ -11,59 +11,62 @@ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. This is free
 software, and you are welcome to redistribute it under certain conditions; see
 the template COPYING for details.
 
-Generates mkstemp(3) file and writes output of PROGRAM to it.
+Generates a temp file in mkstemp(3) format and writes output of PROGRAM to it.
+Optionally prints buffer to STDOUT instead of creating temp file.
 
-Usage: tmpl [OPTIONS]... [FILES]...
+Usage: tmpl [-h|--help] [--detailed-help] [--full-help] [-V|--version]
+         [-f|--force] [-eKEY=VALUE|--env=KEY=VALUE]
+         [-dSECONDS|--delete=SECONDS] [-pPROGRAM|--program=PROGRAM] [-c|--cat]
+         [-rCOMMAND|--run=COMMAND] [-B|--background] [--stdout=FILE]
+         [--stderr=FILE] [FILES]...
 
   -h, --help                    Print help and exit
       --detailed-help           Print help, including all details and hidden
                                   options, and exit
+      --full-help               Print help, including hidden options, and exit
   -V, --version                 Print version and exit
 
 
-  -f, --force                   Force output generation even if PROGRAM fails
-                                  on a template. Use with caution!
-                                  (default=off)
-  If PROGRAM fails on a template, no data (from that template)
-  will be added to the global buffer, instead of aborting. This might lead to
-  unwanted
-  behaviour if you use tmpl for config file generation.
-
-  -T, --mkstemp-template=FORMAT Set mkstemp(3) template.
+  -f, --force                   Force output generation  (default=off)
+  -T, --mkstemp-template=FORMAT Set mkstemp(3) template
                                   (default=`/tmp/.tmpl-XXXXXXXXXX')
   See mkstemp(3) man page
-  -e, --env=KEY=VALUE           Set environment variable ENV to VALUE prior to
+  -e, --env=KEY=VALUE           Set environment variable KEY to VALUE prior to
                                   running PROGRAM or COMMAND
-  -d, --delete=N                Spawns new process which deletes mkstemp(3)
-                                  file after N seconds.
-  -p, --program=PROGRAM         Pass templateN to PROGRAM.  (default=`/bin/sh')
-  Example: tmpl -p /usr/local/bin/ruby ~/.mutt.tmpl.rb
+  -d, --delete=SECONDS          Spawns new process which deletes temp file
+                                  after SECONDS seconds
+  -p, --program=PROGRAM         Run PROGRAM for each given FILE(S)
+                                  (default=`/bin/sh')
+  Example: tmpl -r "neomutt -F %f" -p "erb -T-" ~/.mutt.tmpl.erb
 
 
-  -c, --cat                     Print buffer to STDOUT (does not write
-                                  mkstemp(3) file)  (default=off)
-  -r, --run=COMMAND             Run COMMAND and delete template afterwards.
+
+  -c, --cat                     Print buffer to STDOUT and exit (does not write
+                                  temp file)  (default=off)
+
+  -r, --run=COMMAND             Run COMMAND and delete temp file on exit
   Instead of returning the path, tmpl runs COMMAND
-  and deletes the mkstemp(3) file after COMMAND returns.
+  and deletes the temp file after COMMAND returns.
   It then exits with the return code of COMMAND.
 
   Example: tmpl -r "neomutt -F %f" ~/.mutt.tmpl.sh
 
   Variables:
-          %f  - The generated mkstemp(3) file path
+          %f  - The generated temp file path
 
   -B, --background              Fork to background when used with -r
                                   (default=off)
-      --stdout=FILE             Redirect STDOUT from -r to FILE
-      --stderr=FILE             Redirect STDERR from -r to FILE
+      --stdout=FILE             Redirect STDOUT from COMMAND to FILE
+      --stderr=FILE             Redirect STDERR from COMMAND to FILE
 
 See tmpl(1) for more informations and examples.
+Send bug reports to bugs+tmpl@hiddenbox.org
 
 ```
 
 ## Manpage
 ```
-TMPL(1)			    General Commands Manual		       TMPL(1)
+tmpl(1)			    General Commands Manual		       tmpl(1)
 
 NAME
      tmpl  Generates mkstemp(3) file and writes output of PROGRAM to it

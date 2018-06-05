@@ -1,13 +1,13 @@
 # tmpl
 
-**tmpl** is a small utility tool which creates [mkstemp(3)](https://man.openbsd.org/mkstemp)
+**tmpl** - Generates [mkstemp(3)](https://man.openbsd.org/mkstemp) file and writes output of `PROGRAM` to it
 
 ## Help
 ```
-<%= %x(./tmpl --detailed-help) %>
+<%= %x(tmpl --detailed-help) %>
 ```
 
 ## Manpage
 ```
-<%= %x(mandoc ./tmpl.1 | col -b) %>
+<%= %x(man 1 tmpl | col -b) %>
 ```
