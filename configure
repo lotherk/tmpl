@@ -2807,6 +2807,8 @@ fi
 
 ac_config_headers="$ac_config_headers config.h"
 
+ac_config_files="$ac_config_files tmpl.ggo man/tmpl.1"
+
 
 # Checks for programs.
 ac_ext=c
@@ -3880,7 +3882,6 @@ $as_echo "no" >&6; }
   SET_MAKE="MAKE=${MAKE-make}"
 fi
 
-
 # Checks for libraries.
 
 # Checks for header files.
@@ -4794,6 +4795,7 @@ fi
 done
 
 
+
 ac_config_files="$ac_config_files Makefile src/Makefile man/Makefile"
 
 cat >confcache <<\_ACEOF
@@ -5522,6 +5524,8 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
+    "tmpl.ggo") CONFIG_FILES="$CONFIG_FILES tmpl.ggo" ;;
+    "man/tmpl.1") CONFIG_FILES="$CONFIG_FILES man/tmpl.1" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;

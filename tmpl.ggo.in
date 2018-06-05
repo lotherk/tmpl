@@ -1,5 +1,5 @@
-package "tmpl"
-version "0.1 Copyright (C) 2018 Konrad Lother <k@hiddenbox.org>"
+package "@PACKAGE@"
+version "@VERSION@ Copyright (C) 2018 Konrad Lother <k@hiddenbox.org>"
 
 purpose "Generates a temp file in mkstemp(3) format and writes output of PROGRAM to it. Optionally prints buffer to STDOUT instead of creating temp file."
 
@@ -57,4 +57,5 @@ option "stderr" - "Redirect STDERR from COMMAND to FILE"
         string typestr="FILE" optional
 
 text "
-See tmpl(1) for more informations and examples."
+See tmpl(1) for more informations and examples.
+Send bug reports to @PACKAGE_BUGREPORT@"

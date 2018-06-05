@@ -6,12 +6,12 @@ AC_INIT(tmpl, 0.1, bugs+tmpl@hiddenbox.org)
 AM_INIT_AUTOMAKE(tmpl, 0.1)
 AC_CONFIG_SRCDIR([src/tmpl.c])
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_FILES([tmpl.ggo man/tmpl.1])
 
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
-
 # Checks for libraries.
 
 # Checks for header files.
@@ -27,5 +27,6 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_STRTOD
 AC_CHECK_FUNCS([pledge atexit dup2 setenv strchr strdup])
+
 
 AC_OUTPUT(Makefile src/Makefile man/Makefile)

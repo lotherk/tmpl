@@ -1,8 +1,8 @@
 .Dd $Mdocdate: May 28 2018$
 .Os
-.Dt TMPL 1
+.Dt @PACKAGE@ 1
 .Sh NAME
-.Nm tmpl
+.Nm @PACKAGE@
 .Nd Generates
 .Xr mkstemp 3
 file and writes output of PROGRAM to it

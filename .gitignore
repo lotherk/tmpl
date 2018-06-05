@@ -3,3 +3,5 @@ tmpl-static*
 tmp/
 *.core
 **.sw*
+autom4te.cache
+tmpl.ggo
