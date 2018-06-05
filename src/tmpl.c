@@ -36,13 +36,13 @@
 #include <sys/ioctl.h>
 #include <limits.h>
 #include <unistd.h>
-#include "cmdline.h"
 
-#if defined(HAVE_SYS_FILIO_H)
+#ifdef HAVE_SYS_FILIO_H
 #include <sys/filio.h>
 #endif
 
 #include "config.h"
+#include "cmdline.h"
 
 static char *mkstemp_template, *template_buffer;
 static struct gengetopt_args_info args;
@@ -61,7 +61,7 @@ int main(int argc, char **argv)
     pid_t pid;
     char *tmp;
 
-    mkstemp_template = strdup("/tmp/.tmpl-XXXXXXXXXX");
+    mkstemp_template = NULL;
 
     template_buffer = NULL;
 
@@ -292,6 +292,7 @@ static int write_mkstemp()
 {
     int fd, r;
     size_t size;
+    mkstemp_template = strdup(MKSTEMP_TEMPLATE);
     if (mkstemp_template == NULL)
         return 1;
 

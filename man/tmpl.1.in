@@ -115,9 +115,7 @@ generated file
 .Ek
 .Pp
 Example:
-@PACKAGE@ -r
-.Dq neomutt -F %f
-~/.mutt/genconf.sh
+.Dl @PACKAGE@ -r 'neomutt -F %f' ~/.mutt/genconf.sh
 .It Fl B, -background
 Fork to background. Can only be used with
 .Fl r .
@@ -184,9 +182,7 @@ sure!
 .Va STDERR
 of
 .Ar PROGRAM
-is never written to temp file or output, if
-.Fl c
-is used.
+is never written to temp file or output.
 
 .Sh EXAMPLES
 A typical use case would be running (neo)mutt with multiple accounts using a single

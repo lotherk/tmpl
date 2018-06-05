@@ -8,6 +8,8 @@ AM_INIT_AUTOMAKE([subdir-objects no-dependencies])
 AC_SUBST([COPYRIGHT_NOTICE], ["Copyright (C) 2018 Konrad Lother <k@hiddenbox.org>"])
 AC_SUBST([DEFAULT_PROGRAM], [/bin/sh])
 
+AC_DEFINE([MKSTEMP_TEMPLATE], ["/tmp/.tmpl-XXXXXXXXXX"], ["Default mkstemp(3) template"])
+
 AC_LANG([C])
 
 AC_CONFIG_SRCDIR([src/tmpl.c])
