@@ -36,6 +36,7 @@
 #include <sys/ioctl.h>
 #include <limits.h>
 #include <unistd.h>
+#include <time.h>
 
 #ifdef HAVE_SYS_FILIO_H
 #include <sys/filio.h>
@@ -315,7 +316,7 @@ static void run_command_child()
     int i;
 
 #ifdef HAVE_PLEDGE
-    if (pledge("error stdio exec proc rpath", NULL) == -1) {
+    if (pledge("exec", NULL) == -1) {
         perror("pledge");
         exit(EXIT_FAILURE);
     }
@@ -363,7 +364,6 @@ static void run_command_child()
 
     arguments[arguments_i] = NULL;
     execvp(program, arguments);
-    perror("execvp");
     exit(EXIT_FAILURE);
 }
 static int run_command()
@@ -438,6 +438,10 @@ static int run_command()
 
         int i;
         size_t s;
+        struct timespec tim, tim2;
+
+        tim.tv_sec = 0;
+        tim.tv_nsec = 50000000L;
 
         while(1) {
             if (ioctl(stderr_pipe[0], FIONREAD, &s) == 0 && s > 0) {
@@ -451,9 +455,26 @@ static int run_command()
                 fflush(redir_stdout);
             }
             r = waitpid(pid, &status, WNOHANG);
+            if (r != 0) {
+                if (WIFEXITED(status))
+                    break;
 
-            if (WIFEXITED(status) && r != 0)
-                break;
+                if (WIFSIGNALED(status)) {
+                    perror("child received unhandled signal");
+                    break;
+                }
+
+                if (WCOREDUMP(status)) {
+                    perror("child core dumped");
+                    break;
+                }
+
+                if (WIFSTOPPED(status)) {
+                    perror("child is stopped");
+                    break;
+                }
+            }
+            nanosleep(&tim, &tim2);
         }
 
         fflush(cstdout);
@@ -461,6 +482,9 @@ static int run_command()
         fclose(cstdin);
         fclose(cstdout);
         fclose(cstderr);
+        close(stdin_pipe[1]);
+        close(stdout_pipe[0]);
+        close(stderr_pipe[0]);
 
         if (redir_stderr != stderr && redir_stderr != redir_stdout)
             fclose(redir_stderr);
