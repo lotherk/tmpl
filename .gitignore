@@ -20,3 +20,9 @@ libtool
 ltmain.sh
 missing
 Makefile.in
+stamp-*
+**.o
+Makefile
+**/Makefile
+**.1
+*.log
