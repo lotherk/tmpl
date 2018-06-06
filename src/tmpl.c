@@ -30,6 +30,9 @@
 
 #include "config.h"
 
+#include <err.h>
+#include <limits.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,9 +40,8 @@
 #include <sys/wait.h>
 #include <sys/ioctl.h>
 #include <sys/select.h>
-#include <limits.h>
+#include <sys/mman.h>
 #include <unistd.h>
-#include <err.h>
 
 
 #ifdef HAVE_SYS_FILIO_H
@@ -59,15 +61,13 @@ static void atexit_hook();
 static int write_mkstemp();
 static int run_program(const char *arg);
 static int run_command();
+static void signal_handler(int sig);
+
 
 int main(int argc, char **argv)
 {
     int r, i;
     pid_t pid;
-
-    mkstemp_template = NULL;
-    template_buffer = NULL;
-    run_command_exit_code = 0;
 
 #ifdef HAVE_PLEDGE
     if (pledge("error stdio fattr proc exec tmppath rpath wpath cpath", NULL) == -1)
@@ -75,6 +75,15 @@ int main(int argc, char **argv)
 #endif
 
     atexit(atexit_hook);
+    signal(SIGINT, signal_handler);
+
+    mkstemp_template = mmap(NULL, strlen(MKSTEMP_TEMPLATE) + 1, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    if (mkstemp_template == MAP_FAILED)
+        err(1, "mmap");
+
+    template_buffer = NULL;
+    run_command_exit_code = 0;
+
 
     if ((r = arg_init(argc, argv)) != 0)
         err(1, "arg_init");
@@ -94,7 +103,7 @@ int main(int argc, char **argv)
             r = run_program(args.inputs[i]);
 
             if (r != 0 && !args.force_flag)
-               err(1, "run_program");
+                err(1, "run_program");
         }
     else
         r = run_program(NULL);
@@ -182,8 +191,8 @@ static void atexit_hook()
     if (template_buffer != NULL)
         free(template_buffer);
 
-    if (mkstemp_template != NULL)
-        free(mkstemp_template);
+    if (munmap(mkstemp_template, strlen(MKSTEMP_TEMPLATE) + 1) == -1)
+        warn("munmap failed");
 }
 
 static int run_program(const char *arg)
@@ -198,6 +207,8 @@ static int run_program(const char *arg)
 
     if (arg == NULL) {
         path = strdup(args.program_arg);
+        if (path == NULL)
+            return 1;
     } else {
         tmp = path;
         r = frstrcat(&path, "%s %s", args.program_arg, arg);
@@ -229,8 +240,10 @@ static int run_program(const char *arg)
 
     r = pclose(fp);
     free(path);
-    if (r == -1)
+    if (r == -1) {
+        free(buf);
         return 1;
+    }
 
     r = WEXITSTATUS(r);
     if (r != 0 && !args.force_flag) {
@@ -254,30 +267,74 @@ static int run_program(const char *arg)
 
 static int write_mkstemp()
 {
-    int fd, r;
+    int fd, r, status;
+    pid_t pid;
     size_t size;
+    char *p = NULL;
 
-    mkstemp_template = strdup(MKSTEMP_TEMPLATE);
-    if (mkstemp_template == NULL)
-        return -1;
-    fd = mkstemp(mkstemp_template);
-    if (fd == -1)
-        return -2;
+    pid = fork();
+    if (pid == 0) {
 
-    if ((r = fchmod(fd, 0600)) == -1)
-        return -3;
+#ifdef HAVE_PLEDGE
+        if (pledge("stdio fattr tmppath", NULL) == -1)
+            err(1, "pledge");
+#endif
 
-    size = strlen(template_buffer);
-    if ((r = write(fd, template_buffer, size)) != size)
-        return -4;
+        p = strdup(MKSTEMP_TEMPLATE);
+        if (p == NULL)
+            err(1, NULL);
 
-    if ((r = fchmod(fd, 0400)) == -1)
-        return -5;
+        memcpy(mkstemp_template, p, strlen(p));
+        mkstemp_template[strlen(p)] = '\0';
+        free(p);
 
-    if ((r = close(fd)) != 0)
-        return -6;
+        fd = mkstemp(mkstemp_template);
+        if (fd == -1)
+            err(1, "mkstemp_template mkstemp");
 
-    return 0;
+        if ((r = fchmod(fd, 0600)) == -1)
+            err(1, "mkstemp_template fchmod");
+
+        size = strlen(template_buffer);
+        if ((r = write(fd, template_buffer, size)) != size)
+            err(1, "mkstemp_template write");
+
+        if ((r = fchmod(fd, 0400)) == -1)
+            err(1, "mkstemp_template fchmod");
+
+        if ((r = close(fd)) != 0)
+            err(1, "mkstemp_template close");
+
+        exit(0);
+    } else if (pid < 0) {
+        return -7;
+    } else {
+        free(template_buffer);
+        template_buffer = NULL;
+
+        r = wait(&status);
+        if (r == -1)
+            err(1, "wait");
+
+        if (WIFEXITED(status)) {
+            if ((r = WEXITSTATUS(status)) != 0)
+                err(1, "write_mkstemp child exited non-zero %d", r);
+
+            return 0;
+        }
+        else if (WIFSIGNALED(status))
+            err(1, "child received unhandled signal");
+
+        else if (WCOREDUMP(status))
+            err(1, "child core dumped");
+
+        else if (WIFSTOPPED(status))
+            err(1, "child stopped");
+
+        else
+            errx(1, "child unknown exit");
+    }
+    return 1;
 }
 
 static void run_command_child()
@@ -466,4 +523,14 @@ static int run_command()
     }
 
     return 1; // this should never be reached
+}
+
+static void signal_handler(int sig) {
+    switch (sig) {
+        case SIGINT:
+            err(1, "SIGINT received");
+            break;
+        default:
+            warn("unhandled signal received: %d", sig);
+    }
 }
