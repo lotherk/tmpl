@@ -14,7 +14,6 @@ AC_SUBST([DEFAULT_PROGRAM], "/bin/sh")
 AC_SUBST([MKSTEMP_TEMPLATE], "$MKSTEMP_TEMPLATE")
 AC_SUBST([PACKAGE_UPCASE], "$PACKAGE_UPCASE")
 
-
 AC_LANG([C])
 
 AC_CONFIG_SRCDIR([src/tmpl.c])
@@ -42,6 +41,7 @@ AC_CHECK_HEADERS([\
                   sys/select.h \
                   sys/stat.h \
                   sys/wait.h \
+                  sys/mman.h \
                   unistd.h \
                   ], [],
 [AC_MSG_ERROR(["*** error: missing header file ***"])])
@@ -68,6 +68,9 @@ AC_CHECK_FUNCS([\
                 err \
                 warn \
                 fchmod \
+                mmap \
+                munmap \
+                memcpy \
                 ], [],
 [AC_MSG_ERROR(["*** error: missing function ***"])])
 

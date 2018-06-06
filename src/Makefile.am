@@ -1,4 +1,4 @@
-AM_CFLAGS = -Wall -O2
+AM_CFLAGS = -Wall -O2 -DDATADIR="$(datadir)" -DPREFIX="$(prefix)"
 AM_LDFLAGS =
 
 bin_PROGRAMS = tmpl

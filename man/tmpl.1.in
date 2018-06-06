@@ -219,16 +219,16 @@ configuration file.
 .Pp
 .Dl @PACKAGE@ -r 'neomutt -F %f' -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh
 .Pp
-This will pass ~/.mutt/mutt-gen-config.sh, which is a script that generates a mutt configuration file, to /bin/sh. All output mutt-gen-config.sh generates will be written to a
+This will pass ~/.mutt/mutt-gen-config.sh, which is a script that generates a mutt configuration file, to /bin/sh. All output mutt-gen-config.sh generates will be written to
 .Xr mkstemp 3
-file which is then read by neomutt. Since neomutt is called by
+temp file which is then read by neomutt. Since neomutt is called by
 .Nm
 via
 .Fl r ,
 .Nm
 automatically deletes the generated
 .Xr mkstemp 3
-file as soon as neomutt exits.
+temp file as soon as neomutt exits.
 .Pp
 The same example could also be written as:
 .Pp
@@ -249,7 +249,7 @@ or
 .Pp
 .Dl neomutt -F $(@PACKAGE@ -d 5 -e ACCOUNT=k@hiddenbox.org ~/.mutt/mutt-gen-config.sh)
 .Pp
-will give neomutt 5 seconds (via
+which will give neomutt 5 seconds (via
 .Fl d )
 to read the config from
 .Xr mkstemp 3
