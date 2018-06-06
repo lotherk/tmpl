@@ -31,7 +31,7 @@ extern "C" {
 
 #ifndef CMDLINE_PARSER_VERSION
 /** @brief the program version */
-#define CMDLINE_PARSER_VERSION "0.1 Copyright (C) 2018 Konrad Lother <k@hiddenbox.org>"
+#define CMDLINE_PARSER_VERSION "0.1.1 Copyright (C) 2018 Konrad Lother <k@hiddenbox.org>"
 #endif
 
 /** @brief Where the command line options are stored */

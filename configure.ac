@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT(tmpl, 0.1, bugs+tmpl@hiddenbox.org, [], [https://github.com/lotherk/tmpl])
+AC_INIT(tmpl, 0.1.1, bugs+tmpl@hiddenbox.org, [], [https://github.com/lotherk/tmpl])
 AM_INIT_AUTOMAKE([subdir-objects no-dependencies])
 
 MKSTEMP_TEMPLATE="/tmp/.tmpl-XXXXXXXXXX"
