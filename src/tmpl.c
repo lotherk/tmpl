@@ -31,6 +31,8 @@
 #include "config.h"
 
 #include <err.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <signal.h>
 #include <stdio.h>
@@ -107,7 +109,6 @@ int main(int argc, char **argv)
         }
     else
         r = run_program(NULL);
-
     if (r != 0 && !args.force_flag)
         err(1, "run_program");
 
@@ -233,6 +234,7 @@ static int run_program(const char *arg)
         if (r == -1) {
             free(tmp);
             free(path);
+            pclose(fp);
             return 1;
         }
         free(tmp);
@@ -307,7 +309,7 @@ static int write_mkstemp()
 
         exit(0);
     } else if (pid < 0) {
-        return -7;
+        err(1, "fork");
     } else {
         free(template_buffer);
         template_buffer = NULL;

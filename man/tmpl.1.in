@@ -89,6 +89,16 @@ To use, for example,
 you'd do something like this:
 .Pp
 .Dl @PACKAGE@ -p '/usr/local/bin/erb -T-' /path/to/your.erb
+.Pp
+.Va NOTE:
+.Pp
+if you don't pass any options and arguments, the default program
+.Ar @DEFAULT_PROGRAM@
+will be started and you'll end up in a shell. All output which would normally be printed to STDOUT will be stored into
+.Nm
+its buffer. You'll see
+.Va STDERR ,
+though.
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl h, -help
