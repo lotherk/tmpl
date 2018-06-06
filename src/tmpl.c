@@ -159,12 +159,14 @@ static int arg_init(int argc, char **argv)
     int r;
 
     if((r = cmdline_parser(argc, argv, &args)) != 0)
-        return 1;
+        err(1, "could not parse arguments");
+
+    if (args.run_given && args.cat_given)
+        errx(1, "-r and -c are mutual exclusive, see --help");
 
     if (!args.run_given &&
-            (args.stdout_given || args.stderr_given || args.background_flag)) {
-        errx(1, "-r required, see --help\n");
-    }
+            (args.stdout_given || args.stderr_given || args.background_flag))
+        errx(1, "-r required, see --help");
 
     return 0;
 }
