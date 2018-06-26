@@ -40,12 +40,14 @@ int rstrcat(char **dst, char *src)
     size_t src_s, dst_s, new_s;
     char *p;
 
+    if (src == NULL)
+            return -1;
+
     if (*dst == NULL) {
         *dst = calloc(1, sizeof(char));
         if (*dst == NULL)
             return -1;
     }
-
     src_s = strlen(src);
     dst_s = strlen(*dst);
     new_s = src_s + dst_s;
