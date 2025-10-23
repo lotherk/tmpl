@@ -243,13 +243,27 @@ static int run_program(const char *arg)
     }
 
     r = pclose(fp);
-    free(path);
     if (r == -1) {
+        free(path);
+        free(buf);
+        return 1;
+    }
+
+    if (!WIFEXITED(r)) {
+        if (WIFSIGNALED(r))
+            warnx("%s terminated by signal %d", path, WTERMSIG(r));
+        else if (WIFSTOPPED(r))
+            warnx("%s stopped by signal %d", path, WSTOPSIG(r));
+        else
+            warnx("%s did not exit normally", path);
+
+        free(path);
         free(buf);
         return 1;
     }
 
     r = WEXITSTATUS(r);
+    free(path);
     if (r != 0 && !args.force_flag) {
         free(buf);
         return 1;
